@@ -7,12 +7,15 @@
     <style>
         body { background-color: #f8f9fa; }
         .box { background: white; padding: 15px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 15px; }
-        /* ซ่อนส่วนอื่นๆ เวลาสั่งพิมพ์ */
+        /* สไตล์สำหรับหน้าพิมพ์ */
         @media print {
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
-            #printArea { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            #printArea { position: absolute; left: 0; top: 0; width: 100%; }
             .no-print { display: none !important; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            .print-table th, .print-table td { border: 1px solid #000; padding: 8px; text-align: left; }
+            .print-table th { background-color: #f2f2f2; width: 30%; }
         }
     </style>
 </head>
@@ -23,15 +26,15 @@
     
     <ul class="nav nav-tabs mb-3" id="mainTab" role="tablist">
         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#formSection">ฟอร์มประเมิน NAF</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reportSection">รายงานข้อมูล</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reportSection">รายงานประวัติผู้ป่วย</button></li>
     </ul>
 
     <div class="tab-content">
         <div class="tab-pane fade show active" id="formSection">
             <div class="alert alert-info d-flex align-items-center mb-3">
-                <input type="text" id="searchHN" class="form-control me-2" placeholder="ใส่ HN เพื่อดึงข้อมูลล่าสุด..." style="max-width: 200px;">
+                <input type="text" id="searchHN" class="form-control me-2" placeholder="ค้นหาด้วย HN..." style="max-width: 200px;">
                 <button class="btn btn-primary btn-sm" onclick="fetchPatient()">ดึงข้อมูล</button>
-                <span id="editBanner" class="badge bg-warning ms-3 text-dark d-none fs-6">📌 กำลังแก้ไขข้อมูลเก่า</span>
+                <span id="editBanner" class="badge bg-warning ms-3 text-dark d-none fs-6">📌 กำลังแสดงข้อมูลล่าสุดของ HN นี้ (สามารถแก้ไขได้)</span>
                 <input type="hidden" id="recordId">
             </div>
 
@@ -39,18 +42,11 @@
                 <div class="box row g-2">
                     <div class="col-md-3"><label>HN</label><input type="text" name="hn" id="hn" class="form-control" required></div>
                     <div class="col-md-4"><label>ชื่อ-สกุล</label><input type="text" name="name" class="form-control" required></div>
-                    <div class="col-md-2">
-                        <label>เพศ</label>
-                        <select name="gender" class="form-select"><option value="ชาย">ชาย</option><option value="หญิง">หญิง</option></select>
-                    </div>
+                    <div class="col-md-2"><label>เพศ</label><select name="gender" class="form-select"><option value="ชาย">ชาย</option><option value="หญิง">หญิง</option></select></div>
                     <div class="col-md-2"><label>อายุ (ปี)</label><input type="number" name="age" class="form-control"></div>
                     <div class="col-md-3"><label>วันที่รับ</label><input type="date" name="admitDate" class="form-control"></div>
                     <div class="col-md-4"><label>การวินิจฉัย</label><input type="text" name="diagnosis" class="form-control"></div>
-                    <div class="col-md-4"><label>แหล่งข้อมูล</label>
-                        <select name="infoSource" class="form-select">
-                            <option value="ผู้ป่วย">ผู้ป่วย</option><option value="ญาติ">ญาติ</option><option value="แฟ้มประวัติ">แฟ้มประวัติ</option>
-                        </select>
-                    </div>
+                    <div class="col-md-4"><label>แหล่งข้อมูล</label><select name="infoSource" class="form-select"><option value="ผู้ป่วย">ผู้ป่วย</option><option value="ญาติ">ญาติ</option><option value="แฟ้มประวัติ">แฟ้มประวัติ</option></select></div>
                 </div>
 
                 <div class="box">
@@ -80,14 +76,8 @@
                     </div>
                     <div id="labDiv" class="mt-2 p-2 bg-light border d-none">
                         <b>ผล Lab</b><br>
-                        <input type="radio" class="c-score lab-score" name="lab" value="3" data-l="Albumin<=2.5"> Albumin <= 2.5 (3) |
-                        <input type="radio" class="c-score lab-score" name="lab" value="2" data-l="Albumin 2.6-2.9"> Albumin 2.6-2.9 (2) |
-                        <input type="radio" class="c-score lab-score" name="lab" value="1" data-l="Albumin 3.0-3.5"> Albumin 3.0-3.5 (1) |
-                        <input type="radio" class="c-score lab-score" name="lab" value="0" data-l="Albumin>3.5"> Albumin > 3.5 (0)<br>
-                        <input type="radio" class="c-score lab-score" name="lab" value="3" data-l="TLC<=1000"> TLC <= 1000 (3) |
-                        <input type="radio" class="c-score lab-score" name="lab" value="2" data-l="TLC 1001-1200"> TLC 1001-1200 (2) |
-                        <input type="radio" class="c-score lab-score" name="lab" value="1" data-l="TLC 1201-1500"> TLC 1201-1500 (1) |
-                        <input type="radio" class="c-score lab-score" name="lab" value="0" data-l="TLC>1500"> TLC > 1500 (0)
+                        <input type="radio" class="c-score lab-score" name="lab" value="3" data-l="Albumin<=2.5"> Albumin <= 2.5 (3) | <input type="radio" class="c-score lab-score" name="lab" value="2" data-l="Albumin 2.6-2.9"> Albumin 2.6-2.9 (2) | <input type="radio" class="c-score lab-score" name="lab" value="1" data-l="Albumin 3.0-3.5"> Albumin 3.0-3.5 (1) | <input type="radio" class="c-score lab-score" name="lab" value="0" data-l="Albumin>3.5"> Albumin > 3.5 (0)<br>
+                        <input type="radio" class="c-score lab-score" name="lab" value="3" data-l="TLC<=1000"> TLC <= 1000 (3) | <input type="radio" class="c-score lab-score" name="lab" value="2" data-l="TLC 1001-1200"> TLC 1001-1200 (2) | <input type="radio" class="c-score lab-score" name="lab" value="1" data-l="TLC 1201-1500"> TLC 1201-1500 (1) | <input type="radio" class="c-score lab-score" name="lab" value="0" data-l="TLC>1500"> TLC > 1500 (0)
                     </div>
                 </div>
 
@@ -102,22 +92,22 @@
                     </div>
                     
                     <div class="col-md-6 mb-3"><b>5.1 ลักษณะอาหาร</b><br>
-                        <input type="radio" class="c-score" name="q5_1" value="2" data-l="น้ำๆ"> อาหารน้ำๆ (2) | <input type="radio" class="c-score" name="q5_1" value="2" data-l="เหลวๆ"> อาหารเหลวๆ (2) <br>
+                        <input type="radio" class="c-score" name="q5_1" value="2" data-l="อาหารน้ำๆ"> อาหารน้ำๆ (2) | <input type="radio" class="c-score" name="q5_1" value="2" data-l="อาหารเหลวๆ"> อาหารเหลวๆ (2) <br>
                         <input type="radio" class="c-score" name="q5_1" value="1" data-l="นุ่มกว่าปกติ"> นุ่มกว่าปกติ (1) | <input type="radio" class="c-score" name="q5_1" value="0" data-l="เหมือนปกติ"> เหมือนปกติ (0)
                     </div>
                     <div class="col-md-6 mb-3"><b>5.2 ปริมาณที่กิน</b><br>
-                        <input type="radio" class="c-score" name="q5_2" value="2" data-l="น้อยมาก"> กินน้อยมาก (2) | <input type="radio" class="c-score" name="q5_2" value="1" data-l="น้อยลง"> กินน้อยลง (1) <br>
-                        <input type="radio" class="c-score" name="q5_2" value="0" data-l="กินเท่าปกติ"> กินเท่าปกติ (0) | <input type="radio" class="c-score" name="q5_2" value="0" data-l="มากขึ้น"> มากขึ้น (0)
+                        <input type="radio" class="c-score" name="q5_2" value="2" data-l="กินน้อยมาก"> กินน้อยมาก (2) | <input type="radio" class="c-score" name="q5_2" value="1" data-l="กินน้อยลง"> กินน้อยลง (1) <br>
+                        <input type="radio" class="c-score" name="q5_2" value="0" data-l="กินเท่าปกติ"> กินเท่าปกติ (0) | <input type="radio" class="c-score" name="q5_2" value="0" data-l="กินมากขึ้น"> มากขึ้น (0)
                     </div>
 
                     <div class="col-md-12 mb-3"><b>6. อาการต่อเนื่อง (เลือกได้มากกว่า 1)</b><br>
-                        <i>6.1 การกลืน: </i> <input type="checkbox" class="c-score" name="q6_1" value="2" data-l="สำลัก"> สำลัก(2) | <input type="checkbox" class="c-score" name="q6_1" value="2" data-l="เคี้ยวกลืนลำบาก"> เคี้ยวกลืนลำบาก(2) | <input type="checkbox" class="c-score" name="q6_1" value="0" data-l="ปกติ"> ปกติ(0)<br>
-                        <i>6.2 ทางเดินอาหาร: </i> <input type="checkbox" class="c-score" name="q6_2" value="2" data-l="ท้องเสีย"> ท้องเสีย(2) | <input type="checkbox" class="c-score" name="q6_2" value="2" data-l="ปวดท้อง"> ปวดท้อง(2) | <input type="checkbox" class="c-score" name="q6_2" value="0" data-l="ปกติ"> ปกติ(0)<br>
-                        <i>6.3 อาการกิน: </i> <input type="checkbox" class="c-score" name="q6_3" value="2" data-l="อาเจียน"> อาเจียน(2) | <input type="checkbox" class="c-score" name="q6_3" value="2" data-l="คลื่นไส้"> คลื่นไส้(2) | <input type="checkbox" class="c-score" name="q6_3" value="0" data-l="ปกติ"> ปกติ(0)
+                        <i>6.1 การกลืน: </i> <input type="checkbox" class="c-score" name="q6_1" value="2" data-l="สำลัก"> สำลัก(2) | <input type="checkbox" class="c-score" name="q6_1" value="2" data-l="เคี้ยวกลืนลำบาก"> เคี้ยวกลืนลำบาก(2) | <input type="checkbox" class="c-score" name="q6_1" value="0" data-l="ปกติ(การกลืน)"> ปกติ(0)<br>
+                        <i>6.2 ทางเดินอาหาร: </i> <input type="checkbox" class="c-score" name="q6_2" value="2" data-l="ท้องเสีย"> ท้องเสีย(2) | <input type="checkbox" class="c-score" name="q6_2" value="2" data-l="ปวดท้อง"> ปวดท้อง(2) | <input type="checkbox" class="c-score" name="q6_2" value="0" data-l="ปกติ(ทางเดินอาหาร)"> ปกติ(0)<br>
+                        <i>6.3 อาการกิน: </i> <input type="checkbox" class="c-score" name="q6_3" value="2" data-l="อาเจียน"> อาเจียน(2) | <input type="checkbox" class="c-score" name="q6_3" value="2" data-l="คลื่นไส้"> คลื่นไส้(2) | <input type="checkbox" class="c-score" name="q6_3" value="0" data-l="ปกติ(อาการกิน)"> ปกติ(0)
                     </div>
 
                     <div class="col-md-12"><b>7. การเข้าถึงอาหาร</b><br>
-                        <input type="radio" class="c-score" name="q7" value="2" data-l="นอนติดเตียง"> นอนติดเตียง(2) | <input type="radio" class="c-score" name="q7" value="1" data-l="ต้องมีผู้ช่วย"> ต้องมีผู้ช่วย(1) | <input type="radio" class="c-score" name="q7" value="0" data-l="นั่งๆนอนๆ"> นั่งๆนอนๆ(0) | <input type="radio" class="c-score" name="q7" value="0" data-l="ปกติ"> ปกติ(0)
+                        <input type="radio" class="c-score" name="q7" value="2" data-l="นอนติดเตียง"> นอนติดเตียง(2) | <input type="radio" class="c-score" name="q7" value="1" data-l="ต้องมีผู้ช่วย"> ต้องมีผู้ช่วย(1) | <input type="radio" class="c-score" name="q7" value="0" data-l="นั่งๆนอนๆ"> นั่งๆนอนๆ(0) | <input type="radio" class="c-score" name="q7" value="0" data-l="ปกติ(เข้าถึงอาหาร)"> ปกติ(0)
                     </div>
                 </div>
 
@@ -125,25 +115,29 @@
                     <b>8. โรคประจำตัว (เลือกได้มากกว่า 1)</b><br>
                     <div class="row">
                         <div class="col-md-4">
-                            <input type="checkbox" class="c-score" name="q8" value="6" data-l="Severe pneumonia"> Severe pneumonia (6)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="6" data-l="Critically ill"> Critically ill (6)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="6" data-l="Multiple fracture"> Multiple fracture (6)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="6" data-l="Stroke/CVA"> Stroke/CVA (6)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="6" data-l="Malignant hematologic"> Malignant hematologic (6)
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="6" data-l="Severe pneumonia"> Severe pneumonia (6)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="6" data-l="Critically ill"> Critically ill (6)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="6" data-l="Multiple fracture"> Multiple fracture (6)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="6" data-l="Stroke/CVA"> Stroke/CVA (6)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="6" data-l="Malignant hematologic"> Malignant hematologic (6)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" id="chkOther6" value="6"> อื่นๆ (6 คะแนน) 
+                            <input type="text" id="txtOther6" class="form-control form-control-sm d-inline-block mt-1" style="width: 150px;">
                         </div>
                         <div class="col-md-4">
-                            <input type="checkbox" class="c-score" name="q8" value="3" data-l="DM"> DM (3)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="3" data-l="CKD-ESRD"> CKD-ESRD (3)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="3" data-l="Septicemia"> Septicemia (3)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="3" data-l="Solid cancer"> Solid cancer (3)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="3" data-l="Chronic heart failure"> Chronic heart failure (3)
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="3" data-l="DM"> DM (3)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="3" data-l="CKD-ESRD"> CKD-ESRD (3)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="3" data-l="Septicemia"> Septicemia (3)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="3" data-l="Solid cancer"> Solid cancer (3)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="3" data-l="Chronic heart failure"> Chronic heart failure (3)
                         </div>
                         <div class="col-md-4">
-                            <input type="checkbox" class="c-score" name="q8" value="3" data-l="Hip fracture"> Hip fracture (3)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="3" data-l="COPD"> COPD (3)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="3" data-l="Severe head injury"> Severe head injury (3)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="3" data-l="2° of burn"> 2° of burn (3)<br>
-                            <input type="checkbox" class="c-score" name="q8" value="3" data-l="CLD/Cirrhosis"> Cirrhosis (3)
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="3" data-l="Hip fracture"> Hip fracture (3)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="3" data-l="COPD"> COPD (3)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="3" data-l="Severe head injury"> Severe head injury (3)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="3" data-l="2° of burn"> 2° of burn (3)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" value="3" data-l="CLD/Cirrhosis"> Cirrhosis (3)<br>
+                            <input type="checkbox" class="c-score q8-chk" name="q8" id="chkOther3" value="3"> อื่นๆ (3 คะแนน)
+                            <input type="text" id="txtOther3" class="form-control form-control-sm d-inline-block mt-1" style="width: 150px;">
                         </div>
                     </div>
                 </div>
@@ -158,38 +152,61 @@
                     <div class="col-md-4"><label>ผู้ประเมิน</label><input type="text" name="assessor" id="assessor" class="form-control" required></div>
                     <div class="col-md-4"><label>วันที่ประเมิน</label><input type="date" name="evalDate" id="evalDate" class="form-control" required></div>
                     <div class="col-md-4 text-end">
-                        <button type="button" class="btn btn-secondary me-2" onclick="previewPrint()">พรีวิวเพื่อพิมพ์ HTML</button>
-                        <button type="button" class="btn btn-warning" id="btnEditSave" onclick="submitData('edit')" style="display:none;">บันทึกแก้ไขข้อมูลเดิม</button>
-                        <button type="button" class="btn btn-primary" id="btnNewSave" onclick="submitData('new')">บันทึกเป็นข้อมูลใหม่</button>
+                        <button type="button" class="btn btn-secondary me-2" onclick="previewPrint()">พรีวิวฟอร์มพิมพ์</button>
+                        <button type="button" class="btn btn-warning" id="btnEditSave" onclick="submitData('edit')" style="display:none;">อัปเดตข้อมูลเก่า</button>
+                        <button type="button" class="btn btn-primary" id="btnNewSave" onclick="submitData('new')">บันทึกประเมินใหม่</button>
                     </div>
                 </div>
             </form>
         </div>
 
-        <div class="tab-pane fade p-3" id="reportSection">
-            <h4>รายงาน (Dashboard Placeholder)</h4>
-            <p>คุณสามารถดึงข้อมูลมาแสดงเป็นกราฟหรือตารางในส่วนนี้ได้ในอนาคต</p>
+        <div class="tab-pane fade p-3 bg-white border" id="reportSection">
+            <h4 class="text-primary mb-3">ประวัติการประเมินของผู้ป่วยรายนี้</h4>
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr><th>วันที่ประเมิน</th><th>ผู้ประเมิน</th><th>คะแนนรวม</th><th>ผลการประเมิน (A,B,C)</th><th>รูปร่าง</th><th>โรคประจำตัว</th></tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr><td colspan="6" class="text-center text-muted">กรุณาค้นหาด้วย HN ในหน้าฟอร์มก่อน</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <div id="printArea" style="visibility:hidden; display:none; background:white;">
-    <h2 style="text-align:center;">แบบประเมิน NAF</h2>
-    <p><b>HN:</b> <span id="pHN"></span> &nbsp;&nbsp; <b>ชื่อ:</b> <span id="pName"></span></p>
-    <p><b>คะแนนรวม:</b> <span id="pScore"></span> &nbsp;&nbsp; <b>ผลประเมิน:</b> <span id="pResult"></span></p>
-    <p><b>ผู้ประเมิน:</b> <span id="pAssessor"></span> &nbsp;&nbsp; <b>วันที่:</b> <span id="pDate"></span></p>
-    <hr>
-    <p><i>*สามารถปรับแต่งรูปแบบฟอร์มพิมพ์ที่นี่ได้ตามต้องการ*</i></p>
+    <h2 style="text-align:center;">Nutrition Alert Form (NAF) - สรุปการประเมิน</h2>
+    <div style="display:flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px;">
+        <div><b>HN:</b> <span id="pr_hn"></span><br><b>ชื่อ-สกุล:</b> <span id="pr_name"></span><br><b>อายุ:</b> <span id="pr_age"></span> ปี | <b>เพศ:</b> <span id="pr_gender"></span></div>
+        <div style="text-align: right;"><b>วันที่ประเมิน:</b> <span id="pr_date"></span><br><b>ผู้ประเมิน:</b> <span id="pr_assessor"></span><br><b>วันที่รับผู้ป่วย:</b> <span id="pr_admit"></span></div>
+    </div>
+    
+    <table class="print-table">
+        <tr><th>การวินิจฉัยเบื้องต้น</th><td id="pr_diag"></td></tr>
+        <tr><th>1-2. สัดส่วนและน้ำหนัก</th><td>ส่วนสูง: <span id="pr_h"></span> ซม. | น้ำหนัก: <span id="pr_w"></span> กก. | BMI: <span id="pr_bmi"></span><br>การชั่ง: <span id="pr_q21"></span> | คะแนน BMI: <span id="pr_q22"></span> | Lab: <span id="pr_lab"></span></td></tr>
+        <tr><th>3. รูปร่างผู้ป่วย</th><td id="pr_q3"></td></tr>
+        <tr><th>4. น้ำหนักเปลี่ยน (4 สัปดาห์)</th><td id="pr_q4"></td></tr>
+        <tr><th>5. อาหารที่กิน</th><td>ลักษณะ: <span id="pr_q51"></span><br>ปริมาณ: <span id="pr_q52"></span></td></tr>
+        <tr><th>6. อาการต่อเนื่อง</th><td>การกลืน: <span id="pr_q61"></span><br>ทางเดินอาหาร: <span id="pr_q62"></span><br>ปัญหาระหว่างกิน: <span id="pr_q63"></span></td></tr>
+        <tr><th>7. การเข้าถึงอาหาร</th><td id="pr_q7"></td></tr>
+        <tr><th>8. โรคประจำตัว</th><td id="pr_q8"></td></tr>
+    </table>
+    
+    <div style="margin-top: 20px; padding: 15px; border: 2px solid #000; text-align: center; font-size: 1.2rem;">
+        <b>คะแนนรวมที่ได้: <span id="pr_score" style="color:red;"></span> คะแนน</b> &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; 
+        <b>จัดอยู่ในกลุ่ม: <span id="pr_result" style="color:red;"></span></b>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // ********* ใส่ URL Web App ตรงนี้ *********
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyta4WxCifTX-qdH-zzIb7HxvyDafz-i4ksoKedGxguLkiswZuQ4vLAX4kODFXCRwbB/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzArJpyW7D6oii36XUSSQAB9uu8a-nNqJYfTvM7HYtHww7N_gzKrCC8Vc3PqDcGt-Nd/exec';
 
-    // 1. คำนวณ BMI อัตโนมัติ
+    // การคำนวณคะแนนต่างๆ ทำเหมือนเดิม
     document.getElementById('height').addEventListener('input', calcBMI);
     document.getElementById('weight').addEventListener('input', calcBMI);
+    document.getElementById('nafForm').addEventListener('change', recalcScore);
 
     function calcBMI() {
         let h = parseFloat(document.getElementById('height').value);
@@ -197,7 +214,6 @@
         if(h > 0 && w > 0) {
             let bmi = (w / Math.pow(h/100, 2)).toFixed(1);
             document.getElementById('displayBMI').value = bmi;
-            // ติ๊กคะแนน BMI อัตโนมัติ
             if(bmi < 17) document.getElementById('bmi_2').checked = true;
             else if(bmi <= 18) document.getElementById('bmi_1a').checked = true;
             else if(bmi <= 29.9) document.getElementById('bmi_0').checked = true;
@@ -206,27 +222,18 @@
         }
     }
 
-    // 2. ซ่อน/แสดงผล Lab และเคลียร์ค่า
     function toggleLabDiv() {
         const show = document.getElementById('toggleLab').checked;
         document.getElementById('labDiv').classList.toggle('d-none', !show);
-        if(!show) {
-            document.querySelectorAll('.lab-score').forEach(r => r.checked = false);
-        } else {
-            document.querySelectorAll('input[name="q2_2"]').forEach(r => r.checked = false); // เคลียร์ BMI เดิม
-        }
+        if(!show) document.querySelectorAll('.lab-score').forEach(r => r.checked = false);
+        else document.querySelectorAll('input[name="q2_2"]').forEach(r => r.checked = false);
         recalcScore();
     }
-
-    // 3. คำนวณคะแนนรวม Event
-    document.getElementById('nafForm').addEventListener('change', recalcScore);
 
     function recalcScore() {
         let total = 0;
         let isLabActive = document.getElementById('toggleLab').checked;
-        
         document.querySelectorAll('.c-score:checked').forEach(el => {
-            // ถ้ายกเว้น Lab หรือ BMI ตามเงื่อนไขการติ๊ก
             if(isLabActive && el.name === 'q2_2') return; 
             if(!isLabActive && el.name === 'lab') return;
             total += parseInt(el.value);
@@ -234,13 +241,12 @@
 
         document.getElementById('txtScore').innerText = total;
         document.getElementById('tScore').value = total;
-
         let res = total <= 5 ? 'A (Normal-Mild)' : (total <= 10 ? 'B (Moderate)' : 'C (Severe)');
         document.getElementById('txtResult').innerText = res;
         document.getElementById('rGroup').value = res.charAt(0);
     }
 
-    // 4. ค้นหาประวัติ HN (Fetch)
+    // ฟังก์ชันค้นหาและกระจายข้อมูลลงทุกช่องของฟอร์ม
     function fetchPatient() {
         const hn = document.getElementById('searchHN').value;
         if(!hn) return alert('กรุณาระบุ HN');
@@ -248,37 +254,110 @@
         fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'fetch_hn', hn: hn}) })
         .then(r => r.json()).then(res => {
             if(res.status === 'found') {
-                // เติมข้อมูลที่จำเป็นกลับเข้าฟอร์ม (จำลองแสดงชื่อและอายุ)
-                document.getElementById('hn').value = res.data.hn;
-                document.querySelector('input[name="name"]').value = res.data.name;
-                document.querySelector('input[name="age"]').value = res.data.age;
-                document.getElementById('recordId').value = res.data.record_id;
+                const latest = res.data[0]; // ดึงข้อมูลล่าสุด (Index 0 เพราะเรียงล่างขึ้นบนมาแล้ว)
                 
-                // แจ้งเตือนและแสดงปุ่ม Edit
+                // 1. เติมข้อมูล Text/Date/Number/Select
+                document.getElementById('recordId').value = latest.record_id;
+                document.getElementById('hn').value = latest.hn;
+                document.querySelector('input[name="name"]').value = latest.name;
+                document.querySelector('select[name="gender"]').value = latest.gender;
+                document.querySelector('input[name="age"]').value = latest.age;
+                document.querySelector('input[name="admitDate"]').value = latest.admitDate;
+                document.querySelector('input[name="diagnosis"]').value = latest.diagnosis;
+                document.querySelector('select[name="infoSource"]').value = latest.infoSource;
+                document.getElementById('height').value = latest.height;
+                document.getElementById('weight').value = latest.weight;
+                document.getElementById('evalDate').value = latest.evalDate;
+                document.getElementById('assessor').value = latest.assessor;
+                
+                calcBMI(); // เรียกใช้เผื่อให้โชว์ตัวเลข BMI ทันที
+
+                // 2. ฟังก์ชันช่วยเช็ค Radio และ Checkbox
+                const setChecks = (name, valStr) => {
+                    if(!valStr || valStr === '-') return;
+                    document.querySelectorAll(`input[name="${name}"]`).forEach(el => {
+                        if(valStr.includes(el.getAttribute('data-l'))) el.checked = true;
+                    });
+                };
+
+                // ล้างค่าเก่าก่อน
+                document.getElementById('nafForm').reset(); 
+                document.getElementById('hn').value = latest.hn; // ใส่คืนหลังรีเซ็ต
+                
+                setChecks('q2_1', latest.q2_1);
+                setChecks('q2_2', latest.q2_2);
+                if(latest.lab && latest.lab !== '-') {
+                    document.getElementById('toggleLab').checked = true;
+                    toggleLabDiv();
+                    setChecks('lab', latest.lab);
+                }
+                setChecks('q3', latest.q3);
+                setChecks('q4', latest.q4);
+                setChecks('q5_1', latest.q5_1);
+                setChecks('q5_2', latest.q5_2);
+                setChecks('q6_1', latest.q6_1);
+                setChecks('q6_2', latest.q6_2);
+                setChecks('q6_3', latest.q6_3);
+                setChecks('q7', latest.q7);
+
+                // สำหรับข้อ 8 (โรคประจำตัวที่มี "อื่นๆ")
+                if(latest.q8 && latest.q8 !== '-') {
+                    document.querySelectorAll('input[name="q8"]').forEach(el => {
+                        let l = el.getAttribute('data-l');
+                        if(l && latest.q8.includes(l)) el.checked = true;
+                    });
+                    // ตรวจหาโรคอื่นๆ ที่ถูกพิมพ์เก็บไว้
+                    let m6 = latest.q8.match(/อื่นๆ\(6\):\s*([^,]+)/);
+                    if(m6) { document.getElementById('chkOther6').checked = true; document.getElementById('txtOther6').value = m6[1]; }
+                    let m3 = latest.q8.match(/อื่นๆ\(3\):\s*([^,]+)/);
+                    if(m3) { document.getElementById('chkOther3').checked = true; document.getElementById('txtOther3').value = m3[1]; }
+                }
+
+                recalcScore();
+
+                // 3. แสดงปุ่มอัปเดตและแจ้งเตือน
                 document.getElementById('editBanner').classList.remove('d-none');
                 document.getElementById('btnEditSave').style.display = 'inline-block';
-                document.getElementById('btnNewSave').innerText = 'บันทึกประวัติใหม่ (เพิ่มแถว)';
+                
+                // 4. สร้างตารางประวัติใน Report Tab
+                let tbody = '';
+                res.data.forEach(r => {
+                    tbody += `<tr>
+                        <td>${r.evalDate}</td>
+                        <td>${r.assessor}</td>
+                        <td><strong>${r.total}</strong></td>
+                        <td><span class="badge ${r.result=='C'?'bg-danger':(r.result=='B'?'bg-warning':'bg-success')}">${r.result}</span></td>
+                        <td>${r.q3}</td>
+                        <td>${r.q8}</td>
+                    </tr>`;
+                });
+                document.getElementById('historyTableBody').innerHTML = tbody;
+
             } else {
                 alert('ไม่พบประวัติ HN นี้ในระบบ');
                 document.getElementById('editBanner').classList.add('d-none');
                 document.getElementById('btnEditSave').style.display = 'none';
                 document.getElementById('recordId').value = '';
+                document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="6" class="text-center text-muted">ไม่พบประวัติผู้ป่วย</td></tr>';
             }
         });
     }
 
-    // 5. Submit บันทึกข้อมูล
     function submitData(mode) {
         const fd = new FormData(document.getElementById('nafForm'));
+        
+        // กวาดข้อมูล Radio/Checkbox
         const getVal = (name) => {
-            let els = document.querySelectorAll(`input[name="${name}"]:checked`);
-            let arr = Array.from(els).map(e => e.getAttribute('data-l'));
+            let arr = Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(e => {
+                if(e.id === 'chkOther6') return `อื่นๆ(6): ${document.getElementById('txtOther6').value}`;
+                if(e.id === 'chkOther3') return `อื่นๆ(3): ${document.getElementById('txtOther3').value}`;
+                return e.getAttribute('data-l');
+            });
             return arr.length ? arr.join(', ') : '-';
         };
 
         const payload = {
-            action: 'save_data',
-            saveMode: mode,
+            action: 'save_data', saveMode: mode,
             data: {
                 record_id: document.getElementById('recordId').value,
                 hn: fd.get('hn'), name: fd.get('name'), gender: fd.get('gender'),
@@ -296,19 +375,49 @@
         document.getElementById('btnNewSave').innerText = 'กำลังบันทึก...';
         fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) })
         .then(r => r.json()).then(res => {
-            alert('บันทึกสำเร็จ! โหมด: ' + res.mode);
+            alert('บันทึกสำเร็จ!');
             location.reload();
         });
     }
 
-    // 6. ฟังก์ชันสำหรับการพิมพ์ HTML
+    // ฟังก์ชันยัดข้อมูลลงหน้าพิมพ์ HTML ให้ครบถ้วน
     function previewPrint() {
-        document.getElementById('pHN').innerText = document.getElementById('hn').value;
-        document.getElementById('pName').innerText = document.querySelector('input[name="name"]').value;
-        document.getElementById('pScore').innerText = document.getElementById('tScore').value;
-        document.getElementById('pResult').innerText = document.getElementById('rGroup').value;
-        document.getElementById('pAssessor').innerText = document.getElementById('assessor').value;
-        document.getElementById('pDate').innerText = document.getElementById('evalDate').value;
+        const getText = (selector) => {
+            let r = Array.from(document.querySelectorAll(selector+':checked')).map(e => {
+                if(e.id === 'chkOther6') return `อื่นๆ: ${document.getElementById('txtOther6').value}`;
+                if(e.id === 'chkOther3') return `อื่นๆ: ${document.getElementById('txtOther3').value}`;
+                return e.getAttribute('data-l');
+            });
+            return r.length ? r.join(', ') : '-';
+        };
+
+        document.getElementById('pr_hn').innerText = document.getElementById('hn').value || '-';
+        document.getElementById('pr_name').innerText = document.querySelector('input[name="name"]').value || '-';
+        document.getElementById('pr_age').innerText = document.querySelector('input[name="age"]').value || '-';
+        document.getElementById('pr_gender').innerText = document.querySelector('select[name="gender"]').value || '-';
+        document.getElementById('pr_date').innerText = document.getElementById('evalDate').value || '-';
+        document.getElementById('pr_assessor').innerText = document.getElementById('assessor').value || '-';
+        document.getElementById('pr_admit').innerText = document.querySelector('input[name="admitDate"]').value || '-';
+        document.getElementById('pr_diag').innerText = document.querySelector('input[name="diagnosis"]').value || '-';
+        
+        document.getElementById('pr_h').innerText = document.getElementById('height').value || '-';
+        document.getElementById('pr_w').innerText = document.getElementById('weight').value || '-';
+        document.getElementById('pr_bmi').innerText = document.getElementById('displayBMI').value || '-';
+        document.getElementById('pr_q21').innerText = getText('input[name="q2_1"]');
+        document.getElementById('pr_q22').innerText = getText('input[name="q2_2"]');
+        document.getElementById('pr_lab').innerText = getText('input[name="lab"]');
+        document.getElementById('pr_q3').innerText = getText('input[name="q3"]');
+        document.getElementById('pr_q4').innerText = getText('input[name="q4"]');
+        document.getElementById('pr_q51').innerText = getText('input[name="q5_1"]');
+        document.getElementById('pr_q52').innerText = getText('input[name="q5_2"]');
+        document.getElementById('pr_q61').innerText = getText('input[name="q6_1"]');
+        document.getElementById('pr_q62').innerText = getText('input[name="q6_2"]');
+        document.getElementById('pr_q63').innerText = getText('input[name="q6_3"]');
+        document.getElementById('pr_q7').innerText = getText('input[name="q7"]');
+        document.getElementById('pr_q8').innerText = getText('input[name="q8"]');
+        
+        document.getElementById('pr_score').innerText = document.getElementById('tScore').value;
+        document.getElementById('pr_result').innerText = document.getElementById('rGroup').value;
         
         document.getElementById('printArea').style.display = 'block';
         window.print();
