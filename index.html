@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>NAF Assessment System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #app-content { display: none; }
+        .score-box { background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+        @media print { .no-print { display: none !important; } }
+    </style>
+</head>
+<body class="bg-light">
+
+<div id="login-section" class="container mt-5" style="max-width: 400px;">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="text-center mb-4 text-primary">NAF System Login</h4>
+            <input type="text" id="username" class="form-control mb-3" placeholder="Username (เช่น admin)">
+            <input type="password" id="password" class="form-control mb-3" placeholder="Password (เช่น 1234)">
+            <button class="btn btn-primary w-100" onclick="login()">เข้าสู่ระบบ</button>
+        </div>
+    </div>
+</div>
+
+<div id="app-content" class="container-fluid mt-3 no-print">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h4 class="text-primary">ระบบประเมิน NAF</h4>
+        <div>ผู้ใช้งาน: <span id="currentUser" class="fw-bold"></span> | <button class="btn btn-sm btn-danger" onclick="logout()">Logout</button></div>
+    </div>
+
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#form">บันทึกประเมิน NAF</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#history">ประวัติรายบุคคล</button></li>
+    </ul>
+
+    <div class="tab-content bg-white p-4 shadow-sm border border-top-0">
+        <div class="tab-pane fade show active" id="form" role="tabpanel">
+            <form id="nafForm">
+                <div class="row mb-3">
+                    <div class="col-md-4"><label>HN ผู้ป่วย</label><input type="text" name="hn" class="form-control" required></div>
+                    <div class="col-md-4"><label>วันที่ประเมิน</label><input type="date" name="evalDate" class="form-control" required></div>
+                    <div class="col-md-4"><label>สถานที่/หอผู้ป่วย</label><input type="text" name="location" id="userLocation" class="form-control" required></div>
+                </div>
+
+                <div class="score-box">
+                    <label><b>3. รูปร่างของผู้ป่วย</b> <span class="text-danger">*</span></label><br>
+                    <input type="radio" name="q3_shape" value="2" data-label="ผอมมาก" required> ผอมมาก (2) | 
+                    <input type="radio" name="q3_shape" value="1" data-label="ผอม" required> ผอม (1) | 
+                    <input type="radio" name="q3_shape" value="0" data-label="ปกติ-อ้วน" required> ปกติ-อ้วนปานกลาง (0)
+                </div>
+
+                <div class="score-box">
+                    <label><b>6. อาการต่อเนื่อง > 2 สัปดาห์ (เลือกได้มากกว่า 1)</b></label><br>
+                    <input type="checkbox" class="q-checkbox" name="q6_symptoms" value="2" data-label="เคี้ยว/กลืนลำบาก"> เคี้ยว/กลืนลำบาก (2)<br>
+                    <input type="checkbox" class="q-checkbox" name="q6_symptoms" value="2" data-label="ท้องเสีย"> ท้องเสีย (2)
+                </div>
+
+                <div class="score-box">
+                    <label><b>8. โรคประจำตัว (เลือกได้มากกว่า 1)</b></label><br>
+                    <input type="checkbox" class="q-checkbox" name="q8_disease" value="6" data-label="โรครุนแรงมาก (Stroke, Pneumonia)"> โรคที่มีความรุนแรงมาก (6)<br>
+                    <input type="checkbox" class="q-checkbox" name="q8_disease" value="3" data-label="โรครุนแรงปานกลาง (DM, CKD)"> โรคที่มีความรุนแรงปานกลาง (3)
+                </div>
+
+                <div class="alert alert-info">
+                    <h5>คะแนนรวม: <span id="displayScore">0</span> | ผลการประเมิน: <span id="displayResult">-</span></h5>
+                    <input type="hidden" id="totalScore" name="totalScore">
+                    <input type="hidden" id="nafResult" name="nafResult">
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" required>
+                    <label class="text-danger">ผู้ป่วยยินยอมให้จัดเก็บข้อมูลส่วนบุคคล (PDPA)</label>
+                </div>
+                <button type="submit" class="btn btn-success">บันทึกข้อมูลเข้าสู่ระบบ</button>
+            </form>
+        </div>
+
+        <div class="tab-pane fade" id="history" role="tabpanel">
+            <div class="input-group mb-4" style="max-width: 400px;">
+                <input type="text" id="searchHn" class="form-control" placeholder="ระบุ HN ผู้ป่วย...">
+                <button class="btn btn-primary" onclick="fetchHistory()">ค้นหาประวัติ</button>
+            </div>
+            
+            <div class="mb-4" style="height: 300px;">
+                <canvas id="progressChart"></canvas>
+            </div>
+
+            <table class="table table-bordered table-striped">
+                <thead class="table-primary">
+                    <tr><th>วันที่ประเมิน</th><th>คะแนน</th><th>ผล(Group)</th><th>รายละเอียดที่พบ (รูปร่าง, อาการ, โรค)</th></tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr><td colspan="4" class="text-center">กรุณาค้นหาด้วย HN</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ********* ใส่ URL Web App ของคุณที่นี่ *********
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbw8PwlrUx3YgpNx36K-kq-4a4CwrmqrwiN7zOEc3bzwTnSp_TDfR0ZBzaa4c-8qzJ8X/exec';
+    let progressChartInstance = null;
+
+    // --- ระบบ Login ---
+    function login() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'login', username: u, password: p })
+        }).then(res => res.json()).then(data => {
+            if (data.status === 'success') {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('app-content').style.display = 'block';
+                document.getElementById('currentUser').innerText = data.username;
+                document.getElementById('userLocation').value = data.location;
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+
+    function logout() { location.reload(); }
+
+    // --- ระบบคำนวณคะแนน Auto ---
+    document.getElementById('nafForm').addEventListener('change', function() {
+        let total = 0;
+        document.querySelectorAll('input[type="radio"]:checked').forEach(el => total += parseInt(el.value));
+        document.querySelectorAll('.q-checkbox:checked').forEach(el => total += parseInt(el.value));
+        
+        document.getElementById('displayScore').innerText = total;
+        document.getElementById('totalScore').value = total;
+        
+        let res = total <= 5 ? 'A (ปกติ)' : (total <= 10 ? 'B (เสี่ยงปานกลาง)' : 'C (ทุพโภชนาการรุนแรง)');
+        document.getElementById('displayResult').innerText = res;
+        document.getElementById('nafResult').value = res.charAt(0); // เก็บแค่ A, B, C
+    });
+
+    // --- ระบบ Save ข้อมูล ---
+    document.getElementById('nafForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // ฟังก์ชันช่วยดึง Label
+        const getLabel = (selector) => {
+            let els = document.querySelectorAll(selector + ':checked');
+            let labels = Array.from(els).map(el => `${el.getAttribute('data-label')}(${el.value})`);
+            return labels.length ? labels.join(', ') : '-';
+        };
+
+        const formData = new FormData(this);
+        const payload = {
+            action: 'save_naf',
+            data: {
+                hn: formData.get('hn'),
+                date: formData.get('evalDate'),
+                location: formData.get('location'),
+                q3: getLabel('input[name="q3_shape"]'),
+                q6: getLabel('input[name="q6_symptoms"]'),
+                q8: getLabel('input[name="q8_disease"]'),
+                total: document.getElementById('totalScore').value,
+                result: document.getElementById('nafResult').value,
+                assessor: document.getElementById('currentUser').innerText
+            }
+        };
+
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
+        .then(res => res.json()).then(data => {
+            alert('บันทึกสำเร็จ! จัดอยู่ในกลุ่ม: ' + data.result);
+            this.reset();
+            document.getElementById('displayScore').innerText = '0';
+            document.getElementById('displayResult').innerText = '-';
+        });
+    });
+
+    // --- ระบบดึงประวัติ และสร้าง Chart ---
+    function fetchHistory() {
+        const hn = document.getElementById('searchHn').value;
+        if (!hn) return;
+
+        document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4" class="text-center">กำลังค้นหา...</td></tr>';
+
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'get_history', hn: hn })
+        }).then(res => res.json()).then(data => {
+            if (data.status === 'success' && data.data.length > 0) {
+                renderHistory(data.data);
+            } else {
+                document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4" class="text-center text-danger">ไม่พบประวัติผู้ป่วยรายนี้</td></tr>';
+                if(progressChartInstance) progressChartInstance.destroy();
+            }
+        });
+    }
+
+    function renderHistory(records) {
+        // วาดตาราง
+        let tbody = '';
+        let dates = [];
+        let scores = [];
+
+        records.forEach(r => {
+            // ตัดเวลาออกให้เหลือแต่วันที่
+            let formattedDate = new Date(r.date).toISOString().split('T')[0]; 
+            dates.push(formattedDate);
+            scores.push(r.score);
+            
+            tbody += `<tr>
+                <td>${formattedDate}</td>
+                <td><strong class="fs-5">${r.score}</strong></td>
+                <td><span class="badge ${r.result=='C'?'bg-danger':(r.result=='B'?'bg-warning':'bg-success')}">${r.result}</span></td>
+                <td>
+                    <small><b>รูปร่าง:</b> ${r.q3}<br>
+                    <b>อาการ:</b> ${r.q6}<br>
+                    <b>โรค:</b> ${r.q8}</small>
+                </td>
+            </tr>`;
+        });
+        document.getElementById('historyTableBody').innerHTML = tbody;
+
+        // วาดกราฟเส้น
+        if(progressChartInstance) progressChartInstance.destroy();
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        progressChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'คะแนน NAF (ยิ่งน้อยยิ่งดี)',
+                    data: scores,
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 6
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 20 } } }
+        });
+    }
+</script>
+</body>
+</html>
