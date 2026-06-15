@@ -2,245 +2,264 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>NAF Assessment System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบประเมิน NAF</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        #app-content { display: none; }
-        .score-box { background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
-        @media print { .no-print { display: none !important; } }
+        body { background-color: #f4f6f9; }
+        .form-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .score-display { font-size: 1.5rem; font-weight: bold; }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
-<div id="login-section" class="container mt-5" style="max-width: 400px;">
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h4 class="text-center mb-4 text-primary">NAF System Login</h4>
-            <input type="text" id="username" class="form-control mb-3" placeholder="Username (เช่น admin)">
-            <input type="password" id="password" class="form-control mb-3" placeholder="Password (เช่น 1234)">
-            <button class="btn btn-primary w-100" onclick="login()">เข้าสู่ระบบ</button>
-        </div>
-    </div>
-</div>
-
-<div id="app-content" class="container-fluid mt-3 no-print">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <h4 class="text-primary">ระบบประเมิน NAF</h4>
-        <div>ผู้ใช้งาน: <span id="currentUser" class="fw-bold"></span> | <button class="btn btn-sm btn-danger" onclick="logout()">Logout</button></div>
-    </div>
-
-    <ul class="nav nav-tabs" role="tablist">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#form">บันทึกประเมิน NAF</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#history">ประวัติรายบุคคล</button></li>
+<div class="container-fluid mt-3" style="max-width: 1200px;">
+    <h3 class="mb-3 text-primary">NUTRITION ALERT FORM (NAF)</h3>
+    
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#formTab">บันทึกประเมิน NAF</button></li>
     </ul>
 
-    <div class="tab-content bg-white p-4 shadow-sm border border-top-0">
-        <div class="tab-pane fade show active" id="form" role="tabpanel">
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="formTab">
             <form id="nafForm">
-                <div class="row mb-3">
-                    <div class="col-md-4"><label>HN ผู้ป่วย</label><input type="text" name="hn" class="form-control" required></div>
-                    <div class="col-md-4"><label>วันที่ประเมิน</label><input type="date" name="evalDate" class="form-control" required></div>
-                    <div class="col-md-4"><label>สถานที่/หอผู้ป่วย</label><input type="text" name="location" id="userLocation" class="form-control" required></div>
+                <div class="form-section">
+                    <h5 class="text-secondary border-bottom pb-2">ข้อมูลผู้ป่วย</h5>
+                    <div class="row g-3">
+                        <div class="col-md-2"><label>ผู้ประเมิน</label><input type="text" name="assessor" class="form-control" required></div>
+                        <div class="col-md-2"><label>วันที่ประเมิน</label><input type="date" name="evalDate" class="form-control" required></div>
+                        <div class="col-md-2"><label>HN</label><input type="text" name="hn" class="form-control" required></div>
+                        <div class="col-md-3"><label>ชื่อ-สกุล</label><input type="text" name="patientName" class="form-control" required></div>
+                        <div class="col-md-1">
+                            <label>เพศ</label>
+                            <select name="gender" class="form-select" required>
+                                <option value="ชาย">ชาย</option>
+                                <option value="หญิง">หญิง</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2"><label>อายุ (ปี)</label><input type="number" name="age" class="form-control" required></div>
+                        <div class="col-md-3"><label>วันที่รับผู้ป่วย</label><input type="date" name="admitDate" class="form-control"></div>
+                        <div class="col-md-5"><label>การวินิจฉัยเบื้องต้น</label><input type="text" name="diagnosis" class="form-control"></div>
+                        <div class="col-md-4">
+                            <label>แหล่งข้อมูล</label>
+                            <select name="infoSource" class="form-select">
+                                <option value="ผู้ป่วย">ผู้ป่วย</option>
+                                <option value="ญาติ">ญาติ</option>
+                                <option value="แฟ้มประวัติ">แฟ้มประวัติ</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="score-box">
-                    <label><b>3. รูปร่างของผู้ป่วย</b> <span class="text-danger">*</span></label><br>
-                    <input type="radio" name="q3_shape" value="2" data-label="ผอมมาก" required> ผอมมาก (2) | 
-                    <input type="radio" name="q3_shape" value="1" data-label="ผอม" required> ผอม (1) | 
-                    <input type="radio" name="q3_shape" value="0" data-label="ปกติ-อ้วน" required> ปกติ-อ้วนปานกลาง (0)
+                <div class="form-section">
+                    <h5 class="text-secondary border-bottom pb-2">แบบประเมินภาวะโภชนาการ (ประเมินทุกข้อ)</h5>
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4"><label>1. ส่วนสูง / Arm Span (ซม.)</label><input type="number" name="height" class="form-control"></div>
+                        <div class="col-md-4"><label>2. น้ำหนัก (กก.)</label><input type="number" name="weight" class="form-control"></div>
+                        <div class="col-md-4"><label>ค่า BMI / Albumin / TLC</label><input type="text" name="bmi_lab" class="form-control"></div>
+                        <div class="col-md-12 mt-2">
+                            <label class="fw-bold">คะแนนรวมข้อ 1-2 (คะแนน BMI/Lab) <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-3 mt-1">
+                                <label><input type="radio" class="q-score" name="score_q1_q2" value="0" required> 0 คะแนน</label>
+                                <label><input type="radio" class="q-score" name="score_q1_q2" value="1" required> 1 คะแนน</label>
+                                <label><input type="radio" class="q-score" name="score_q1_q2" value="2" required> 2 คะแนน</label>
+                                <label><input type="radio" class="q-score" name="score_q1_q2" value="3" required> 3 คะแนน</label>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">3. รูปร่างของผู้ป่วย <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-3">
+                            <label><input type="radio" class="q-score" name="q3" value="2" data-label="ผอมมาก" required> ผอมมาก (2)</label>
+                            <label><input type="radio" class="q-score" name="q3" value="1" data-label="ผอม/อ้วนมาก" required> ผอม / อ้วนมาก (1)</label>
+                            <label><input type="radio" class="q-score" name="q3" value="0" data-label="ปกติ" required> ปกติ-อ้วนปานกลาง (0)</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">4. น้ำหนักเปลี่ยนใน 4 สัปดาห์ <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-3">
+                            <label><input type="radio" class="q-score" name="q4" value="2" data-label="ลดลง" required> ลดลง/ผอมลง (2)</label>
+                            <label><input type="radio" class="q-score" name="q4" value="1" data-label="เพิ่มขึ้น" required> เพิ่มขึ้น/อ้วนขึ้น (1)</label>
+                            <label><input type="radio" class="q-score" name="q4" value="0" data-label="คงเดิม/ไม่ทราบ" required> คงเดิม / ไม่ทราบ (0)</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">5. อาหารที่กินในช่วง 2 สัปดาห์ <span class="text-danger">*</span></label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <b>5.1 ลักษณะอาหาร</b><br>
+                                <label><input type="radio" class="q-score" name="q5_1" value="2" data-label="อาหารน้ำ/เหลว" required> อาหารน้ำๆ / เหลวๆ (2)</label><br>
+                                <label><input type="radio" class="q-score" name="q5_1" value="1" data-label="อาหารอ่อน" required> อาหารนุ่มกว่าปกติ (1)</label><br>
+                                <label><input type="radio" class="q-score" name="q5_1" value="0" data-label="อาหารปกติ" required> อาหารเหมือนปกติ (0)</label>
+                            </div>
+                            <div class="col-md-6">
+                                <b>5.2 ปริมาณที่กิน</b><br>
+                                <label><input type="radio" class="q-score" name="q5_2" value="2" data-label="กินน้อยมาก" required> กินน้อยมาก (2)</label><br>
+                                <label><input type="radio" class="q-score" name="q5_2" value="1" data-label="กินน้อยลง" required> กินน้อยลง (1)</label><br>
+                                <label><input type="radio" class="q-score" name="q5_2" value="0" data-label="กินเท่าปกติ/มากขึ้น" required> กินเท่าปกติ / มากขึ้น (0)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">6. อาการต่อเนื่อง > 2 สัปดาห์ (เลือกได้มากกว่า 1 ข้อ)</label><br>
+                        <div class="d-flex gap-4 flex-wrap">
+                            <label><input type="checkbox" class="q-check" name="q6" value="2" data-label="สำลัก/เคี้ยวกลืนลำบาก"> สำลัก / เคี้ยวกลืนลำบาก (2)</label>
+                            <label><input type="checkbox" class="q-check" name="q6" value="2" data-label="ท้องเสีย/ปวดท้อง"> ท้องเสีย / ปวดท้อง (2)</label>
+                            <label><input type="checkbox" class="q-check" name="q6" value="2" data-label="อาเจียน/คลื่นไส้"> อาเจียน / คลื่นไส้ (2)</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">7. ความสามารถในการเข้าถึงอาหาร <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-4">
+                            <label><input type="radio" class="q-score" name="q7" value="2" data-label="นอนติดเตียง" required> นอนติดเตียง (2)</label>
+                            <label><input type="radio" class="q-score" name="q7" value="1" data-label="ต้องมีผู้ช่วยบ้าง" required> ต้องมีผู้ช่วยบ้าง (1)</label>
+                            <label><input type="radio" class="q-score" name="q7" value="0" data-label="ปกติ/นั่งๆนอนๆ" required> ปกติ / นั่งๆ นอนๆ (0)</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="fw-bold">8. โรคที่เป็นอยู่ (รุนแรง) (เลือกได้มากกว่า 1 ข้อ)</label><br>
+                        <label><input type="checkbox" class="q-check" name="q8" value="6" data-label="รุนแรงมาก(Stroke,ICU,Pneumonia)"> โรคมีความรุนแรงมาก (6)</label><br>
+                        <label><input type="checkbox" class="q-check" name="q8" value="3" data-label="รุนแรงปานกลาง(DM,CKD,Cancer)"> โรคมีความรุนแรงปานกลาง (3)</label>
+                    </div>
                 </div>
 
-                <div class="score-box">
-                    <label><b>6. อาการต่อเนื่อง > 2 สัปดาห์ (เลือกได้มากกว่า 1)</b></label><br>
-                    <input type="checkbox" class="q-checkbox" name="q6_symptoms" value="2" data-label="เคี้ยว/กลืนลำบาก"> เคี้ยว/กลืนลำบาก (2)<br>
-                    <input type="checkbox" class="q-checkbox" name="q6_symptoms" value="2" data-label="ท้องเสีย"> ท้องเสีย (2)
+                <div class="form-section bg-light border border-info">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>คะแนนรวม: </strong> <span id="displayScore" class="score-display text-primary">0</span><br>
+                            <strong>ผลการประเมิน: </strong> <span id="displayResult" class="score-display text-secondary">-</span>
+                        </div>
+                        <div class="text-end">
+                            <div class="form-check mb-2 text-start">
+                                <input class="form-check-input" type="checkbox" required>
+                                <label class="form-check-label text-danger" style="font-size: 0.9rem;">ยินยอมให้บันทึกข้อมูลตามหลัก PDPA</label>
+                            </div>
+                            <button type="submit" class="btn btn-success px-4 py-2">บันทึกข้อมูล NAF</button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="totalScore" id="inputTotalScore">
+                    <input type="hidden" name="resultGroup" id="inputResultGroup">
                 </div>
-
-                <div class="score-box">
-                    <label><b>8. โรคประจำตัว (เลือกได้มากกว่า 1)</b></label><br>
-                    <input type="checkbox" class="q-checkbox" name="q8_disease" value="6" data-label="โรครุนแรงมาก (Stroke, Pneumonia)"> โรคที่มีความรุนแรงมาก (6)<br>
-                    <input type="checkbox" class="q-checkbox" name="q8_disease" value="3" data-label="โรครุนแรงปานกลาง (DM, CKD)"> โรคที่มีความรุนแรงปานกลาง (3)
-                </div>
-
-                <div class="alert alert-info">
-                    <h5>คะแนนรวม: <span id="displayScore">0</span> | ผลการประเมิน: <span id="displayResult">-</span></h5>
-                    <input type="hidden" id="totalScore" name="totalScore">
-                    <input type="hidden" id="nafResult" name="nafResult">
-                </div>
-
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" required>
-                    <label class="text-danger">ผู้ป่วยยินยอมให้จัดเก็บข้อมูลส่วนบุคคล (PDPA)</label>
-                </div>
-                <button type="submit" class="btn btn-success">บันทึกข้อมูลเข้าสู่ระบบ</button>
             </form>
-        </div>
-
-        <div class="tab-pane fade" id="history" role="tabpanel">
-            <div class="input-group mb-4" style="max-width: 400px;">
-                <input type="text" id="searchHn" class="form-control" placeholder="ระบุ HN ผู้ป่วย...">
-                <button class="btn btn-primary" onclick="fetchHistory()">ค้นหาประวัติ</button>
-            </div>
-            
-            <div class="mb-4" style="height: 300px;">
-                <canvas id="progressChart"></canvas>
-            </div>
-
-            <table class="table table-bordered table-striped">
-                <thead class="table-primary">
-                    <tr><th>วันที่ประเมิน</th><th>คะแนน</th><th>ผล(Group)</th><th>รายละเอียดที่พบ (รูปร่าง, อาการ, โรค)</th></tr>
-                </thead>
-                <tbody id="historyTableBody">
-                    <tr><td colspan="4" class="text-center">กรุณาค้นหาด้วย HN</td></tr>
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // ********* ใส่ URL Web App ของคุณที่นี่ *********
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbw8PwlrUx3YgpNx36K-kq-4a4CwrmqrwiN7zOEc3bzwTnSp_TDfR0ZBzaa4c-8qzJ8X/exec';
-    let progressChartInstance = null;
+    // ********* ใส่ URL Web App ของคุณตรงนี้ *********
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycby3DItCpXoxpIOGwjNsnIgbVwYNj1_ld_mLBm91X1upHJRUo_ifXHGEWgWPqDvSNsXR/exec';
 
-    // --- ระบบ Login ---
-    function login() {
-        const u = document.getElementById('username').value;
-        const p = document.getElementById('password').value;
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'login', username: u, password: p })
-        }).then(res => res.json()).then(data => {
-            if (data.status === 'success') {
-                document.getElementById('login-section').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                document.getElementById('currentUser').innerText = data.username;
-                document.getElementById('userLocation').value = data.location;
-            } else {
-                alert(data.message);
-            }
-        });
-    }
-
-    function logout() { location.reload(); }
-
-    // --- ระบบคำนวณคะแนน Auto ---
+    // ฟังก์ชันคำนวณคะแนน
     document.getElementById('nafForm').addEventListener('change', function() {
         let total = 0;
-        document.querySelectorAll('input[type="radio"]:checked').forEach(el => total += parseInt(el.value));
-        document.querySelectorAll('.q-checkbox:checked').forEach(el => total += parseInt(el.value));
         
+        // รวมคะแนนจาก Radio
+        document.querySelectorAll('.q-score:checked').forEach(el => total += parseInt(el.value));
+        // รวมคะแนนจาก Checkbox
+        document.querySelectorAll('.q-check:checked').forEach(el => total += parseInt(el.value));
+
         document.getElementById('displayScore').innerText = total;
-        document.getElementById('totalScore').value = total;
-        
-        let res = total <= 5 ? 'A (ปกติ)' : (total <= 10 ? 'B (เสี่ยงปานกลาง)' : 'C (ทุพโภชนาการรุนแรง)');
-        document.getElementById('displayResult').innerText = res;
-        document.getElementById('nafResult').value = res.charAt(0); // เก็บแค่ A, B, C
+        document.getElementById('inputTotalScore').value = total;
+
+        let resultText = '';
+        let groupText = '';
+        if (total <= 5) {
+            resultText = 'A (Normal-Mild malnutrition)';
+            groupText = 'A';
+            document.getElementById('displayResult').className = 'score-display text-success';
+        } else if (total <= 10) {
+            resultText = 'B (Moderate malnutrition)';
+            groupText = 'B';
+            document.getElementById('displayResult').className = 'score-display text-warning';
+        } else {
+            resultText = 'C (Severe malnutrition)';
+            groupText = 'C';
+            document.getElementById('displayResult').className = 'score-display text-danger';
+        }
+
+        document.getElementById('displayResult').innerText = resultText;
+        document.getElementById('inputResultGroup').value = groupText;
     });
 
-    // --- ระบบ Save ข้อมูล ---
+    // ฟังก์ชันส่งข้อมูล
     document.getElementById('nafForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // ฟังก์ชันช่วยดึง Label
+        // ฟังก์ชันดึง Text ออกจากตัวเลือก
         const getLabel = (selector) => {
-            let els = document.querySelectorAll(selector + ':checked');
-            let labels = Array.from(els).map(el => `${el.getAttribute('data-label')}(${el.value})`);
-            return labels.length ? labels.join(', ') : '-';
+            let selected = document.querySelector(selector + ':checked');
+            return selected ? selected.getAttribute('data-label') + ' (' + selected.value + ')' : '-';
+        };
+        const getCheckLabels = (selector) => {
+            let labels = Array.from(document.querySelectorAll(selector + ':checked'))
+                              .map(el => el.getAttribute('data-label'));
+            return labels.length > 0 ? labels.join(', ') : 'ไม่มี';
         };
 
         const formData = new FormData(this);
+        
         const payload = {
             action: 'save_naf',
             data: {
+                evalDate: formData.get('evalDate'),
+                assessor: formData.get('assessor'),
                 hn: formData.get('hn'),
-                date: formData.get('evalDate'),
-                location: formData.get('location'),
-                q3: getLabel('input[name="q3_shape"]'),
-                q6: getLabel('input[name="q6_symptoms"]'),
-                q8: getLabel('input[name="q8_disease"]'),
-                total: document.getElementById('totalScore').value,
-                result: document.getElementById('nafResult').value,
-                assessor: document.getElementById('currentUser').innerText
+                patientName: formData.get('patientName'),
+                gender: formData.get('gender'),
+                age: formData.get('age'),
+                admitDate: formData.get('admitDate'),
+                diagnosis: formData.get('diagnosis'),
+                infoSource: formData.get('infoSource'),
+                height: formData.get('height') || '-',
+                weight: formData.get('weight') || '-',
+                bmi_lab: formData.get('bmi_lab') || '-',
+                score_q1_q2: formData.get('score_q1_q2'),
+                q3: getLabel('input[name="q3"]'),
+                q4: getLabel('input[name="q4"]'),
+                q5_1: getLabel('input[name="q5_1"]'),
+                q5_2: getLabel('input[name="q5_2"]'),
+                q6: getCheckLabels('input[name="q6"]'),
+                q7: getLabel('input[name="q7"]'),
+                q8: getCheckLabels('input[name="q8"]'),
+                totalScore: formData.get('totalScore'),
+                resultGroup: formData.get('resultGroup')
             }
         };
 
-        fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) })
-        .then(res => res.json()).then(data => {
-            alert('บันทึกสำเร็จ! จัดอยู่ในกลุ่ม: ' + data.result);
-            this.reset();
-            document.getElementById('displayScore').innerText = '0';
-            document.getElementById('displayResult').innerText = '-';
-        });
-    });
-
-    // --- ระบบดึงประวัติ และสร้าง Chart ---
-    function fetchHistory() {
-        const hn = document.getElementById('searchHn').value;
-        if (!hn) return;
-
-        document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4" class="text-center">กำลังค้นหา...</td></tr>';
+        // เปลี่ยนปุ่มเป็นสถานะกำลังโหลด
+        const btn = document.querySelector('button[type="submit"]');
+        btn.innerText = 'กำลังบันทึก...';
+        btn.disabled = true;
 
         fetch(GAS_URL, {
             method: 'POST',
-            body: JSON.stringify({ action: 'get_history', hn: hn })
-        }).then(res => res.json()).then(data => {
-            if (data.status === 'success' && data.data.length > 0) {
-                renderHistory(data.data);
-            } else {
-                document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4" class="text-center text-danger">ไม่พบประวัติผู้ป่วยรายนี้</td></tr>';
-                if(progressChartInstance) progressChartInstance.destroy();
-            }
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert('บันทึกข้อมูลเรียบร้อยแล้ว! ผลประเมินอยู่กลุ่ม: ' + data.result);
+            this.reset();
+            document.getElementById('displayScore').innerText = '0';
+            document.getElementById('displayResult').innerText = '-';
+        })
+        .catch(err => {
+            alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            console.error(err);
+        })
+        .finally(() => {
+            btn.innerText = 'บันทึกข้อมูล NAF';
+            btn.disabled = false;
         });
-    }
-
-    function renderHistory(records) {
-        // วาดตาราง
-        let tbody = '';
-        let dates = [];
-        let scores = [];
-
-        records.forEach(r => {
-            // ตัดเวลาออกให้เหลือแต่วันที่
-            let formattedDate = new Date(r.date).toISOString().split('T')[0]; 
-            dates.push(formattedDate);
-            scores.push(r.score);
-            
-            tbody += `<tr>
-                <td>${formattedDate}</td>
-                <td><strong class="fs-5">${r.score}</strong></td>
-                <td><span class="badge ${r.result=='C'?'bg-danger':(r.result=='B'?'bg-warning':'bg-success')}">${r.result}</span></td>
-                <td>
-                    <small><b>รูปร่าง:</b> ${r.q3}<br>
-                    <b>อาการ:</b> ${r.q6}<br>
-                    <b>โรค:</b> ${r.q8}</small>
-                </td>
-            </tr>`;
-        });
-        document.getElementById('historyTableBody').innerHTML = tbody;
-
-        // วาดกราฟเส้น
-        if(progressChartInstance) progressChartInstance.destroy();
-        const ctx = document.getElementById('progressChart').getContext('2d');
-        progressChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dates,
-                datasets: [{
-                    label: 'คะแนน NAF (ยิ่งน้อยยิ่งดี)',
-                    data: scores,
-                    borderColor: '#0d6efd',
-                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
-                    tension: 0.3,
-                    fill: true,
-                    pointRadius: 6
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 20 } } }
-        });
-    }
+    });
 </script>
 </body>
 </html>
