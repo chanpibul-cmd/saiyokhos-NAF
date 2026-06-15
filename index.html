@@ -150,7 +150,7 @@
                     <div class="col-md-4"><label>ผู้ประเมิน</label><input type="text" name="assessor" id="assessor" class="form-control" required></div>
                     <div class="col-md-4"><label>วันที่ประเมิน</label><input type="date" name="evalDate" id="evalDate" class="form-control" required></div>
                     <div class="col-md-4 text-end">
-                        <button type="button" class="btn btn-secondary me-2" onclick="previewPrint()">พรีวิวพิมพ์</button>
+                        <button type="button" class="btn btn-secondary me-2" onclick="previewPrint()">พรีวิวพิมพ์ฟอร์มปัจจุบัน</button>
                         <button type="button" class="btn btn-warning" id="btnEditSave" onclick="submitData('edit')" style="display:none;">อัปเดตข้อมูลเก่า</button>
                         <button type="button" class="btn btn-primary" id="btnNewSave" onclick="submitData('new')">บันทึกประเมินใหม่</button>
                     </div>
@@ -170,10 +170,10 @@
             </div>
             <table class="table table-striped table-bordered" id="historyTable">
                 <thead class="table-dark">
-                    <tr><th>HN</th><th>ชื่อ-สกุล</th><th>วันที่ประเมิน</th><th>ผู้ประเมิน</th><th>คะแนนรวม</th><th>ผลการประเมิน</th><th>รูปร่าง</th><th>โรคประจำตัว</th></tr>
+                    <tr><th>HN</th><th>ชื่อ-สกุล</th><th>วันที่ประเมิน</th><th>ผู้ประเมิน</th><th>คะแนนรวม</th><th>ผลการประเมิน</th><th>การจัดการ</th></tr>
                 </thead>
                 <tbody id="historyTableBody">
-                    <tr><td colspan="8" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -204,14 +204,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // ********* ใส่ URL Web App ตรงนี้ *********
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxggk8P62XPu-0r65NjInzdh3QjDXSKa3IzL3Ta8A2SFAHIgc9untlkNVsKSsuvqAjN/exec';
+    const GAS_URL = 'hhttps://script.google.com/macros/s/AKfycbzz2cdX0PLaLXB4lR4MOqC7KF5vP9TQzeMjssGR56rtRNyVvNikBhfXdfKwtM2enHk-/exec';
 
-    // จัดการให้ช่อง HN เป็นตัวเลข 7 หลักเสมอเมื่อกรอกเสร็จ
+    // จัดการ HN เป็น 7 หลัก
     document.querySelectorAll('.hn-format').forEach(el => {
         el.addEventListener('blur', function() {
             if(this.value) {
-                let cleanVal = this.value.replace(/\D/g, ''); // เอาเฉพาะตัวเลข
+                let cleanVal = this.value.replace(/\D/g, ''); 
                 this.value = cleanVal.padStart(7, '0');
             }
         });
@@ -287,8 +286,6 @@
         .then(r => r.json()).then(res => {
             if(res.status === 'found') {
                 const latest = res.data[0]; 
-                
-                // ล้างค่าเก่าก่อนนำเข้าข้อมูลใหม่
                 clearForm();
                 
                 document.getElementById('recordId').value = latest.record_id;
@@ -351,7 +348,6 @@
     }
 
     function submitData(mode) {
-        // จัดรูปแบบ HN ในฟอร์มให้ชัวร์ก่อนส่ง
         let hnEl = document.getElementById('hn');
         if(hnEl.value) hnEl.value = hnEl.value.replace(/\D/g, '').padStart(7, '0');
         if(!hnEl.value) return alert('กรุณาระบุ HN ให้ถูกต้อง');
@@ -391,10 +387,9 @@
         });
     }
 
-    // ฟังก์ชันสำหรับแท็บ Report
     let allHistoryData = [];
     function loadAllHistory() {
-        document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="8" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr>';
+        document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="7" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr>';
         fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'fetch_all'}) })
         .then(r => r.json()).then(res => {
             if(res.status === 'success') {
@@ -407,14 +402,14 @@
     function renderTable(data) {
         let tbody = '';
         if(data.length === 0) {
-            tbody = '<tr><td colspan="8" class="text-center text-muted">ไม่มีข้อมูล</td></tr>';
+            tbody = '<tr><td colspan="7" class="text-center text-muted">ไม่มีข้อมูล</td></tr>';
         } else {
             data.forEach(r => {
                 let badgeClass = r.result === 'C' ? 'bg-danger' : (r.result === 'B' ? 'bg-warning' : 'bg-success');
                 tbody += `<tr>
                     <td>${r.hn}</td><td>${r.name}</td><td>${r.evalDate}</td><td>${r.assessor}</td>
                     <td><strong>${r.total}</strong></td><td><span class="badge ${badgeClass}">NAF ${r.result}</span></td>
-                    <td>${r.q3}</td><td>${r.q8}</td>
+                    <td><button class="btn btn-sm btn-info text-white" onclick="printFromHistory('${r.record_id}')">🖨️ พิมพ์</button></td>
                 </tr>`;
             });
         }
@@ -431,6 +426,57 @@
         renderTable(filteredData);
     }
 
+    // ฟังก์ชันพิมพ์ฟอร์มจากประวัติเก่า
+    function printFromHistory(recordId) {
+        const r = allHistoryData.find(item => item.record_id === recordId);
+        if(!r) return;
+
+        document.getElementById('pr_hn').innerText = r.hn || '-';
+        document.getElementById('pr_name').innerText = r.name || '-';
+        document.getElementById('pr_age').innerText = r.age || '-';
+        document.getElementById('pr_gender').innerText = r.gender || '-';
+        document.getElementById('pr_date').innerText = r.evalDate || '-';
+        document.getElementById('pr_assessor').innerText = r.assessor || '-';
+        document.getElementById('pr_admit').innerText = r.admitDate || '-';
+        document.getElementById('pr_diag').innerText = r.diagnosis || '-';
+        
+        document.getElementById('pr_h').innerText = r.height || '-';
+        document.getElementById('pr_w').innerText = r.weight || '-';
+        
+        // คำนวณ BMI สำหรับแสดงในฟอร์มพิมพ์
+        let bmiVal = '-';
+        if(r.height > 0 && r.weight > 0) {
+            bmiVal = (r.weight / Math.pow(r.height/100, 2)).toFixed(1);
+        }
+        document.getElementById('pr_bmi').innerText = bmiVal;
+        
+        document.getElementById('pr_q21').innerText = r.q2_1 || '-';
+        document.getElementById('pr_q22').innerText = r.q2_2 || '-';
+        document.getElementById('pr_lab').innerText = r.lab || '-';
+        document.getElementById('pr_q3').innerText = r.q3 || '-';
+        document.getElementById('pr_q4').innerText = r.q4 || '-';
+        document.getElementById('pr_q51').innerText = r.q5_1 || '-';
+        document.getElementById('pr_q52').innerText = r.q5_2 || '-';
+        document.getElementById('pr_q61').innerText = r.q6_1 || '-';
+        document.getElementById('pr_q62').innerText = r.q6_2 || '-';
+        document.getElementById('pr_q63').innerText = r.q6_3 || '-';
+        document.getElementById('pr_q7').innerText = r.q7 || '-';
+        document.getElementById('pr_q8').innerText = r.q8 || '-';
+        
+        document.getElementById('pr_score').innerText = r.total;
+        
+        let resText = '';
+        if (r.total <= 5) resText = 'NAF A: ปกติ ถึง ขาดสารอาหารเล็กน้อย';
+        else if (r.total <= 10) resText = 'NAF B: ขาดสารอาหารปานกลาง';
+        else resText = 'NAF C: ขาดสารอาหารรุนแรง';
+        document.getElementById('pr_result').innerText = resText;
+        
+        document.getElementById('printArea').style.display = 'block';
+        window.print();
+        document.getElementById('printArea').style.display = 'none';
+    }
+
+    // ฟังก์ชันพิมพ์ฟอร์มปัจจุบันที่เพิ่งกรอก
     function previewPrint() {
         const getText = (selector) => {
             let r = Array.from(document.querySelectorAll(selector+':checked')).map(e => {
