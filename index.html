@@ -23,6 +23,10 @@
         }
         .search-result-item { cursor: pointer; transition: 0.2s; }
         .search-result-item:hover { background-color: #f1f8ff; }
+        
+        /* สไตล์สำหรับตาราง Log */
+        .log-table-wrapper { max-height: 500px; overflow-y: auto; }
+        .log-table-wrapper thead th { position: sticky; top: 0; background-color: #343a40; color: white; z-index: 1; }
     </style>
 </head>
 <body>
@@ -50,8 +54,9 @@
     
     <ul class="nav nav-tabs mb-3" id="mainTab" role="tablist">
         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#formSection">ฟอร์มประเมิน NAF</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reportSection">รายงานประวัติผู้ป่วย</button></li>
-        <li class="nav-item" id="tabAdmin" style="display:none;"><button class="nav-link text-danger" data-bs-toggle="tab" data-bs-target="#adminSection" onclick="loadUsers()">จัดการผู้ใช้งาน</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reportSection" onclick="loadAllHistory()">รายงานประวัติผู้ป่วย</button></li>
+        <li class="nav-item" id="tabAdmin" style="display:none;"><button class="nav-link text-danger fw-bold" data-bs-toggle="tab" data-bs-target="#adminSection" onclick="loadUsers()">จัดการผู้ใช้ (Admin)</button></li>
+        <li class="nav-item" id="tabLogs" style="display:none;"><button class="nav-link text-danger fw-bold" data-bs-toggle="tab" data-bs-target="#logSection" onclick="loadLogs()">ดู Log ระบบ</button></li>
     </ul>
 
     <div class="tab-content">
@@ -152,7 +157,56 @@
             </table>
         </div>
 
-        <div class="tab-pane fade p-3 bg-white border" id="adminSection">... (ระบบแอดมิน โหลดผ่าน JS) ...</div>
+        <div class="tab-pane fade p-3 bg-white border" id="adminSection">
+            <h4 class="text-danger mb-3">ระบบจัดการผู้ใช้งาน (Admin Only)</h4>
+            <div class="box bg-light mb-4">
+                <h5>เพิ่ม / แก้ไขผู้ใช้งาน</h5>
+                <form id="userForm" class="row g-2">
+                    <input type="hidden" id="u_old_username">
+                    <div class="col-md-2"><label>Username</label><input type="text" id="u_username" class="form-control" required></div>
+                    <div class="col-md-2"><label>Password</label><input type="text" id="u_password" class="form-control" required></div>
+                    <div class="col-md-3"><label>ชื่อ-นามสกุลจริง</label><input type="text" id="u_fullname" class="form-control" required></div>
+                    <div class="col-md-2">
+                        <label>Role</label>
+                        <select id="u_role" class="form-select"><option value="Nurse">Nurse</option><option value="Dietitian">Dietitian</option><option value="Admin">Admin</option></select>
+                    </div>
+                    <div class="col-md-3"><label>Location</label><input type="text" id="u_location" class="form-control"></div>
+                    <div class="col-12 mt-2">
+                        <button type="button" class="btn btn-success" onclick="saveAdminUser('new')" id="btnSaveUser">เพิ่มผู้ใช้งานใหม่</button>
+                        <button type="button" class="btn btn-warning" onclick="saveAdminUser('edit')" id="btnEditUser" style="display:none;">บันทึกการแก้ไข</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetUserForm()">ยกเลิก/ล้างฟอร์ม</button>
+                    </div>
+                </form>
+            </div>
+            <table class="table table-bordered">
+                <thead class="table-secondary">
+                    <tr><th>Username</th><th>ชื่อ-นามสกุล</th><th>Role</th><th>Location</th><th>จัดการ</th></tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade p-3 bg-white border" id="logSection">
+            <h4 class="text-danger mb-3">ประวัติการใช้งานระบบ (System Logs)</h4>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <input type="text" id="filterLogInput" class="form-control" placeholder="ค้นหา Username หรือ Action..." oninput="filterLogTable()">
+                </div>
+                <div class="col-md-8 text-end">
+                    <button class="btn btn-primary" onclick="loadLogs()">รีเฟรช Log ใหม่</button>
+                </div>
+            </div>
+            <div class="log-table-wrapper">
+                <table class="table table-striped table-bordered table-sm" style="font-size: 0.9rem;">
+                    <thead>
+                        <tr><th>วันเวลา</th><th>ผู้ใช้งาน</th><th>Action</th><th>เป้าหมาย (HN)</th><th>IP Address</th><th>อุปกรณ์ (เบราว์เซอร์)</th></tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                        <tr><td colspan="6" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -165,9 +219,7 @@
       </div>
       <div class="modal-body">
         <input type="text" id="advSearchInput" class="form-control form-control-lg mb-3" placeholder="พิมพ์ชื่อ, นามสกุล หรือ HN เพื่อกรอง..." oninput="filterSearchModal()">
-        <div id="advSearchResults" class="list-group">
-            <div class="text-center text-muted p-3">พิมพ์คำค้นหาเพื่อแสดงรายชื่อผู้ป่วย</div>
-        </div>
+        <div id="advSearchResults" class="list-group"><div class="text-center text-muted p-3">พิมพ์คำค้นหาเพื่อแสดงรายชื่อ</div></div>
       </div>
     </div>
   </div>
@@ -207,17 +259,16 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxawn9M5I4GBLzQ9KStChPhmDv6Uw0bDC70-e_6Jz6gTvt8ro8J8YunbjssZndPeYwQ/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxggk8P62XPu-0r65NjInzdh3QjDXSKa3IzL3Ta8A2SFAHIgc9untlkNVsKSsuvqAjN/exec';
     let allHistoryData = [];
-    let groupedHistory = {}; // สำหรับค้นหาและแยกวันที่ประเมิน
+    let groupedHistory = {}; 
+    let allLogsData = []; // เก็บข้อมูล Log
 
-    // ฟังก์ชันขอ IP สำหรับ Log
     async function getClientIP() {
         try { let r = await fetch('https://api.ipify.org?format=json'); let d = await r.json(); return d.ip; } 
         catch(e) { return 'Unknown'; }
     }
 
-    // ฟังก์ชันส่ง Log ไปที่ Sheet
     async function writeLog(action, targetHn = '-') {
         let ip = await getClientIP();
         let ua = navigator.userAgent;
@@ -228,11 +279,8 @@
     // ================= ระบบ Persistent Login =================
     window.onload = function() {
         const savedUser = localStorage.getItem('naf_user');
-        if(savedUser) {
-            setupUserSession(JSON.parse(savedUser));
-        } else {
-            document.getElementById('loginSection').style.display = 'block';
-        }
+        if(savedUser) { setupUserSession(JSON.parse(savedUser)); } 
+        else { document.getElementById('loginSection').style.display = 'block'; }
     };
 
     function login() {
@@ -244,7 +292,7 @@
         fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: u, password: p }) })
         .then(r => r.json()).then(res => {
             if(res.status === 'success') {
-                localStorage.setItem('naf_user', JSON.stringify(res)); // บันทึกไว้ในเครื่อง
+                localStorage.setItem('naf_user', JSON.stringify(res));
                 setupUserSession(res);
                 writeLog('Login Success');
             } else { alert(res.message); document.getElementById('btnLogin').innerText = "เข้าสู่ระบบ"; }
@@ -255,13 +303,16 @@
         document.getElementById('lblUser').innerText = userObj.fullname || userObj.username;
         document.getElementById('lblLocation').innerText = userObj.location;
         document.getElementById('assessor').value = userObj.fullname || userObj.username;
-        if(userObj.role.toLowerCase() === 'admin') document.getElementById('tabAdmin').style.display = 'block';
+        
+        if(userObj.role.toLowerCase() === 'admin') {
+            document.getElementById('tabAdmin').style.display = 'block';
+            document.getElementById('tabLogs').style.display = 'block';
+        }
         
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('mainAppSection').style.display = 'block';
         setCurrentDateTime('evalDate');
-        
-        loadAllHistory(); // ดึงข้อมูลประวัติทั้งหมดมารอไว้สำหรับการค้นหา
+        loadAllHistory();
     }
 
     function logout() {
@@ -280,67 +331,88 @@
     function showLoading(text) { document.getElementById('loadingText').innerText = text; document.getElementById('loadingOverlay').style.display = 'flex'; }
     function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
 
-    // ================= โหลดและจัดการประวัติ & Modal ค้นหา =================
-    function loadAllHistory() {
-        fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'fetch_all'}) })
+    // ================= ฟอร์ม NAF =================
+    document.querySelectorAll('.hn-format').forEach(el => {
+        el.addEventListener('blur', function() { if(this.value) { this.value = this.value.replace(/\D/g, '').padStart(7, '0'); } });
+    });
+
+    document.getElementById('height').addEventListener('input', calcBMI);
+    document.getElementById('weight').addEventListener('input', calcBMI);
+    document.getElementById('nafForm').addEventListener('change', recalcScore);
+
+    function calcBMI() {
+        let h = parseFloat(document.getElementById('height').value);
+        let w = parseFloat(document.getElementById('weight').value);
+        if(h > 0 && w > 0) {
+            let bmi = (w / Math.pow(h/100, 2)).toFixed(1);
+            document.getElementById('displayBMI').value = bmi;
+            if(bmi < 17) document.getElementById('bmi_2').checked = true;
+            else if(bmi <= 18) document.getElementById('bmi_1a').checked = true;
+            else if(bmi <= 29.9) document.getElementById('bmi_0').checked = true;
+            else document.getElementById('bmi_1b').checked = true;
+            recalcScore();
+        }
+    }
+
+    function toggleLabDiv() {
+        const show = document.getElementById('toggleLab').checked;
+        document.getElementById('labDiv').classList.toggle('d-none', !show);
+        if(!show) document.querySelectorAll('.lab-score').forEach(r => r.checked = false);
+        else document.querySelectorAll('input[name="q2_2"]').forEach(r => r.checked = false);
+        recalcScore();
+    }
+
+    function recalcScore() {
+        let total = 0;
+        let isLabActive = document.getElementById('toggleLab').checked;
+        document.querySelectorAll('.c-score:checked').forEach(el => {
+            if(isLabActive && el.name === 'q2_2') return; 
+            if(!isLabActive && el.name === 'lab') return;
+            total += parseInt(el.value);
+        });
+        document.getElementById('txtScore').innerText = total;
+        document.getElementById('tScore').value = total;
+        let res = '', group = '';
+        if (total <= 5) { res = 'NAF A: ปกติ ถึง ขาดสารอาหารเล็กน้อย'; group = 'A'; }
+        else if (total <= 10) { res = 'NAF B: ขาดสารอาหารปานกลาง'; group = 'B'; }
+        else { res = 'NAF C: ขาดสารอาหารรุนแรง'; group = 'C'; }
+        document.getElementById('txtResult').innerText = res;
+        document.getElementById('rGroup').value = group;
+    }
+
+    function clearForm(resetDate = true) {
+        document.getElementById('nafForm').reset();
+        document.getElementById('editBanner').classList.add('d-none');
+        document.getElementById('btnEditSave').style.display = 'none';
+        document.getElementById('recordId').value = '';
+        document.getElementById('txtScore').innerText = '0';
+        document.getElementById('txtResult').innerText = '-';
+        document.getElementById('displayBMI').value = '';
+        document.getElementById('toggleLab').checked = false;
+        toggleLabDiv();
+        
+        let u = JSON.parse(localStorage.getItem('naf_user'));
+        document.getElementById('assessor').value = u ? (u.fullname || u.username) : '';
+        if(resetDate) setCurrentDateTime('evalDate');
+    }
+
+    function fetchPatient() {
+        let hnEl = document.getElementById('searchHN');
+        if(hnEl.value) { hnEl.value = hnEl.value.replace(/\D/g, '').padStart(7, '0'); }
+        const hn = hnEl.value;
+        if(!hn) return alert('กรุณาระบุ HN');
+        
+        showLoading('กำลังดึงข้อมูล...');
+        fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'fetch_hn', hn: hn}) })
         .then(r => r.json()).then(res => {
-            if(res.status === 'success') {
-                allHistoryData = res.data;
-                renderTable(allHistoryData);
-                
-                // จัดกลุ่มประวัติแยกตาม HN สำหรับ Modal ค้นหา
-                groupedHistory = {};
-                allHistoryData.forEach(r => {
-                    if(!groupedHistory[r.hn]) groupedHistory[r.hn] = { name: r.name, records: [] };
-                    groupedHistory[r.hn].records.push(r);
-                });
-            }
+            hideLoading();
+            if(res.status === 'found') {
+                populateForm(res.data[0]);
+                writeLog('Fetch Patient', hn);
+            } else { alert('ไม่พบประวัติ HN นี้ในระบบ'); clearForm(); }
         });
     }
 
-    function openSearchModal() {
-        document.getElementById('advSearchInput').value = '';
-        document.getElementById('advSearchResults').innerHTML = '<div class="text-center text-muted p-3">พิมพ์คำค้นหาเพื่อแสดงรายชื่อ</div>';
-        new bootstrap.Modal(document.getElementById('searchModal')).show();
-    }
-
-    function filterSearchModal() {
-        let kw = document.getElementById('advSearchInput').value.toLowerCase();
-        let box = document.getElementById('advSearchResults');
-        if(kw.length < 1) { box.innerHTML = ''; return; }
-        
-        let html = '';
-        let count = 0;
-        for (let hn in groupedHistory) {
-            let patient = groupedHistory[hn];
-            if (hn.includes(kw) || patient.name.toLowerCase().includes(kw)) {
-                count++;
-                // สร้าง HTML แสดงผล ถ้ามีหลายครั้งให้โชว์รายการวันที่ให้คลิก
-                let recordLinks = patient.records.map(r => 
-                    `<button class="btn btn-sm btn-outline-primary m-1" onclick="loadSpecificRecord('${r.record_id}')">📄 ${r.evalDate} (คะแนน: ${r.total})</button>`
-                ).join('');
-
-                html += `<div class="list-group-item search-result-item">
-                    <h6 class="mb-1 text-primary fw-bold">HN: ${hn} - ${patient.name}</h6>
-                    <div class="mt-2 text-muted" style="font-size:0.9rem;">เลือกประวัติที่ต้องการดึง:</div>
-                    <div class="d-flex flex-wrap mt-1">${recordLinks}</div>
-                </div>`;
-            }
-            if(count > 20) break; // แสดงสูงสุด 20 คนป้องกันแลค
-        }
-        box.innerHTML = html || '<div class="text-center text-danger p-3">ไม่พบรายชื่อหรือ HN ที่ตรงกัน</div>';
-    }
-
-    function loadSpecificRecord(recordId) {
-        bootstrap.Modal.getInstance(document.getElementById('searchModal')).hide();
-        let record = allHistoryData.find(r => r.record_id === recordId);
-        if(record) {
-            populateForm(record);
-            writeLog('View/Load Record', record.hn);
-        }
-    }
-
-    // (ฟังก์ชัน populateForm ยกมาจากโค้ดเก่าของคุณ เพื่อใส่ค่าลงฟอร์ม)
     function populateForm(latest) {
         clearForm(false);
         document.getElementById('recordId').value = latest.record_id;
@@ -348,8 +420,6 @@
         document.getElementById('pName').value = latest.name;
         document.querySelector('select[name="gender"]').value = latest.gender;
         document.querySelector('input[name="age"]').value = latest.age;
-        
-        // จัดการวันที่รองรับแบบมีเวลา T
         if(latest.admitDate && latest.admitDate.includes('T')) document.querySelector('input[name="admitDate"]').value = latest.admitDate.slice(0,16);
         else document.querySelector('input[name="admitDate"]').value = latest.admitDate;
         
@@ -384,68 +454,6 @@
         document.getElementById('btnEditSave').style.display = 'inline-block';
     }
 
-    // ฟอร์มทั่วไปและคำนวณ BMI
-    function calcBMI() {
-        let h = parseFloat(document.getElementById('height').value);
-        let w = parseFloat(document.getElementById('weight').value);
-        if(h > 0 && w > 0) {
-            let bmi = (w / Math.pow(h/100, 2)).toFixed(1);
-            document.getElementById('displayBMI').value = bmi;
-            if(bmi < 17) document.getElementById('bmi_2').checked = true;
-            else if(bmi <= 18) document.getElementById('bmi_1a').checked = true;
-            else if(bmi <= 29.9) document.getElementById('bmi_0').checked = true;
-            else document.getElementById('bmi_1b').checked = true;
-            recalcScore();
-        }
-    }
-    document.getElementById('height').addEventListener('input', calcBMI);
-    document.getElementById('weight').addEventListener('input', calcBMI);
-    document.getElementById('nafForm').addEventListener('change', recalcScore);
-
-    function toggleLabDiv() {
-        const show = document.getElementById('toggleLab').checked;
-        document.getElementById('labDiv').classList.toggle('d-none', !show);
-        if(!show) document.querySelectorAll('.lab-score').forEach(r => r.checked = false);
-        else document.querySelectorAll('input[name="q2_2"]').forEach(r => r.checked = false);
-        recalcScore();
-    }
-
-    function recalcScore() {
-        let total = 0;
-        let isLabActive = document.getElementById('toggleLab').checked;
-        document.querySelectorAll('.c-score:checked').forEach(el => {
-            if(isLabActive && el.name === 'q2_2') return; 
-            if(!isLabActive && el.name === 'lab') return;
-            total += parseInt(el.value);
-        });
-
-        document.getElementById('txtScore').innerText = total;
-        document.getElementById('tScore').value = total;
-        
-        let res = '', group = '';
-        if (total <= 5) { res = 'NAF A: ปกติ ถึง ขาดสารอาหารเล็กน้อย'; group = 'A'; }
-        else if (total <= 10) { res = 'NAF B: ขาดสารอาหารปานกลาง'; group = 'B'; }
-        else { res = 'NAF C: ขาดสารอาหารรุนแรง'; group = 'C'; }
-        document.getElementById('txtResult').innerText = res;
-        document.getElementById('rGroup').value = group;
-    }
-
-    function clearForm(resetDate = true) {
-        document.getElementById('nafForm').reset();
-        document.getElementById('editBanner').classList.add('d-none');
-        document.getElementById('btnEditSave').style.display = 'none';
-        document.getElementById('recordId').value = '';
-        document.getElementById('txtScore').innerText = '0';
-        document.getElementById('txtResult').innerText = '-';
-        document.getElementById('displayBMI').value = '';
-        document.getElementById('toggleLab').checked = false;
-        toggleLabDiv();
-        
-        let u = JSON.parse(localStorage.getItem('naf_user'));
-        document.getElementById('assessor').value = u ? (u.fullname || u.username) : '';
-        if(resetDate) setCurrentDateTime('evalDate');
-    }
-
     function submitData(mode) {
         let hnEl = document.getElementById('hn');
         if(hnEl.value) hnEl.value = hnEl.value.replace(/\D/g, '').padStart(7, '0');
@@ -464,15 +472,11 @@
         const payload = {
             action: 'save_data', saveMode: mode,
             data: {
-                record_id: document.getElementById('recordId').value,
-                hn: fd.get('hn'), name: fd.get('name'), gender: fd.get('gender'),
+                record_id: document.getElementById('recordId').value, hn: fd.get('hn'), name: fd.get('name'), gender: fd.get('gender'),
                 age: fd.get('age'), admitDate: fd.get('admitDate'), diagnosis: fd.get('diagnosis'), infoSource: fd.get('infoSource'),
-                height: fd.get('height'), weight: fd.get('weight'),
-                q2_1: getVal('q2_1'), q2_2: getVal('q2_2'), lab: getVal('lab'),
-                q3: getVal('q3'), q4: getVal('q4'), q5_1: getVal('q5_1'), q5_2: getVal('q5_2'),
-                q6_1: getVal('q6_1'), q6_2: getVal('q6_2'), q6_3: getVal('q6_3'),
-                q7: getVal('q7'), q8: getVal('q8'),
-                totalScore: fd.get('totalScore'), resultGroup: fd.get('resultGroup'),
+                height: fd.get('height'), weight: fd.get('weight'), q2_1: getVal('q2_1'), q2_2: getVal('q2_2'), lab: getVal('lab'),
+                q3: getVal('q3'), q4: getVal('q4'), q5_1: getVal('q5_1'), q5_2: getVal('q5_2'), q6_1: getVal('q6_1'), q6_2: getVal('q6_2'), q6_3: getVal('q6_3'),
+                q7: getVal('q7'), q8: getVal('q8'), totalScore: fd.get('totalScore'), resultGroup: fd.get('resultGroup'),
                 assessor: fd.get('assessor'), evalDate: fd.get('evalDate'), details: fd.get('details')
             }
         };
@@ -488,14 +492,64 @@
         });
     }
 
-    // ================= ระบบตารางประวัติ =================
+    // ================= ระบบค้นหาและโหลดประวัติ =================
+    function loadAllHistory() {
+        fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'fetch_all'}) })
+        .then(r => r.json()).then(res => {
+            if(res.status === 'success') {
+                allHistoryData = res.data;
+                renderTable(allHistoryData);
+                groupedHistory = {};
+                allHistoryData.forEach(r => {
+                    if(!groupedHistory[r.hn]) groupedHistory[r.hn] = { name: r.name, records: [] };
+                    groupedHistory[r.hn].records.push(r);
+                });
+            }
+        });
+    }
+
+    function openSearchModal() {
+        document.getElementById('advSearchInput').value = '';
+        document.getElementById('advSearchResults').innerHTML = '<div class="text-center text-muted p-3">พิมพ์คำค้นหาเพื่อแสดงรายชื่อ</div>';
+        new bootstrap.Modal(document.getElementById('searchModal')).show();
+    }
+
+    function filterSearchModal() {
+        let kw = document.getElementById('advSearchInput').value.toLowerCase();
+        let box = document.getElementById('advSearchResults');
+        if(kw.length < 1) { box.innerHTML = ''; return; }
+        
+        let html = ''; let count = 0;
+        for (let hn in groupedHistory) {
+            let patient = groupedHistory[hn];
+            if (hn.includes(kw) || patient.name.toLowerCase().includes(kw)) {
+                count++;
+                let recordLinks = patient.records.map(r => 
+                    `<button class="btn btn-sm btn-outline-primary m-1" onclick="loadSpecificRecord('${r.record_id}')">📄 ${r.evalDate.replace('T',' ')} (คะแนน: ${r.total})</button>`
+                ).join('');
+                html += `<div class="list-group-item search-result-item">
+                    <h6 class="mb-1 text-primary fw-bold">HN: ${hn} - ${patient.name}</h6>
+                    <div class="mt-2 text-muted" style="font-size:0.9rem;">เลือกประวัติที่ต้องการดึง:</div>
+                    <div class="d-flex flex-wrap mt-1">${recordLinks}</div>
+                </div>`;
+            }
+            if(count > 20) break;
+        }
+        box.innerHTML = html || '<div class="text-center text-danger p-3">ไม่พบรายชื่อหรือ HN ที่ตรงกัน</div>';
+    }
+
+    function loadSpecificRecord(recordId) {
+        bootstrap.Modal.getInstance(document.getElementById('searchModal')).hide();
+        let record = allHistoryData.find(r => r.record_id === recordId);
+        if(record) { populateForm(record); writeLog('Load Record from Modal', record.hn); }
+    }
+
     function renderTable(data) {
         let tbody = '';
         if(data.length === 0) tbody = '<tr><td colspan="7" class="text-center text-muted">ไม่มีข้อมูล</td></tr>';
         else {
             data.forEach(r => {
                 let badgeClass = r.result === 'C' ? 'bg-danger' : (r.result === 'B' ? 'bg-warning' : 'bg-success');
-                // แปลง T ในตารางให้สวยขึ้น
                 let eDate = r.evalDate.replace('T', ' ');
                 tbody += `<tr><td>${r.hn}</td><td>${r.name}</td><td>${eDate}</td><td>${r.assessor}</td>
                     <td><strong>${r.total}</strong></td><td><span class="badge ${badgeClass}">NAF ${r.result}</span></td>
@@ -512,7 +566,108 @@
         renderTable(filteredData);
     }
 
-    // ================= ฟังก์ชันพิมพ์ =================
+    // ================= ระบบ Admin จัดการ User =================
+    function loadUsers() {
+        document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
+        fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'get_users'}) })
+        .then(r => r.json()).then(res => {
+            let tr = '';
+            res.data.forEach(u => {
+                tr += `<tr><td>${u.username}</td><td>${u.fullname||'-'}</td><td>${u.role}</td><td>${u.location}</td>
+                <td><button class="btn btn-sm btn-warning" onclick="editUser('${u.username}', '${u.password}', '${u.role}', '${u.location}', '${u.fullname||''}')">แก้ไข</button>
+                <button class="btn btn-sm btn-danger" onclick="delUser('${u.username}')">ลบ</button></td></tr>`;
+            });
+            document.getElementById('usersTableBody').innerHTML = tr;
+        });
+    }
+
+    function resetUserForm() {
+        document.getElementById('userForm').reset();
+        document.getElementById('u_old_username').value = '';
+        document.getElementById('btnSaveUser').style.display = 'inline-block';
+        document.getElementById('btnEditUser').style.display = 'none';
+    }
+
+    function editUser(u, p, r, l, f) {
+        document.getElementById('u_old_username').value = u;
+        document.getElementById('u_username').value = u;
+        document.getElementById('u_password').value = p;
+        document.getElementById('u_role').value = r;
+        document.getElementById('u_location').value = l;
+        document.getElementById('u_fullname').value = f;
+        document.getElementById('btnSaveUser').style.display = 'none';
+        document.getElementById('btnEditUser').style.display = 'inline-block';
+    }
+
+    function saveAdminUser(mode) {
+        const payload = {
+            action: 'save_user', mode: mode,
+            data: {
+                old_username: document.getElementById('u_old_username').value,
+                username: document.getElementById('u_username').value,
+                password: document.getElementById('u_password').value,
+                role: document.getElementById('u_role').value,
+                location: document.getElementById('u_location').value,
+                fullname: document.getElementById('u_fullname').value
+            }
+        };
+        fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) })
+        .then(r => r.json()).then(res => { 
+            alert('บันทึกผู้ใช้สำเร็จ'); 
+            writeLog(mode === 'edit' ? 'Update User' : 'Create User', document.getElementById('u_username').value);
+            resetUserForm(); 
+            loadUsers(); 
+        });
+    }
+
+    function delUser(username) {
+        if(!confirm('ลบผู้ใช้งาน: ' + username + ' ใช่หรือไม่?')) return;
+        fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'delete_user', username: username}) })
+        .then(r => r.json()).then(res => { 
+            alert('ลบสำเร็จ'); 
+            writeLog('Delete User', username);
+            loadUsers(); 
+        });
+    }
+
+    // ================= ระบบ Logs (Admin Only) =================
+    function loadLogs() {
+        document.getElementById('logTableBody').innerHTML = '<tr><td colspan="6" class="text-center">กำลังโหลด Logs...</td></tr>';
+        fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'get_logs'}) })
+        .then(r => r.json()).then(res => {
+            if(res.status === 'success') {
+                allLogsData = res.data;
+                renderLogTable(allLogsData);
+            } else {
+                document.getElementById('logTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger">${res.message}</td></tr>`;
+            }
+        });
+    }
+
+    function renderLogTable(data) {
+        let tbody = '';
+        if(data.length === 0) tbody = '<tr><td colspan="6" class="text-center text-muted">ไม่มีประวัติ Log</td></tr>';
+        else {
+            data.forEach(L => {
+                let dStr = new Date(L.datetime).toLocaleString('th-TH'); // ปรับฟอร์แมตให้อ่านง่าย
+                // ตัด UA ให้สั้นลงเพื่อความสวยงามในตาราง
+                let shortUA = L.ua ? (L.ua.length > 40 ? L.ua.substring(0,40)+'...' : L.ua) : '-';
+                tbody += `<tr><td>${dStr}</td><td>${L.username}</td><td><span class="text-primary">${L.action}</span></td>
+                          <td>${L.target}</td><td>${L.ip}</td><td title="${L.ua}">${shortUA}</td></tr>`;
+            });
+        }
+        document.getElementById('logTableBody').innerHTML = tbody;
+    }
+
+    function filterLogTable() {
+        let kw = document.getElementById('filterLogInput').value.toLowerCase();
+        let filtered = allLogsData.filter(L => 
+            L.username.toLowerCase().includes(kw) || L.action.toLowerCase().includes(kw) || L.target.toString().includes(kw)
+        );
+        renderLogTable(filtered);
+    }
+
+    // ================= ฟังก์ชันการพิมพ์ =================
     function renderPrint(r) {
         const getText = (selector) => {
             let res = Array.from(document.querySelectorAll(selector+':checked')).map(e => {
