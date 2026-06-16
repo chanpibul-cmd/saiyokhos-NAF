@@ -16,7 +16,6 @@
             .print-table th, .print-table td { border: 1px solid #000; padding: 8px; text-align: left; }
             .print-table th { background-color: #f2f2f2; width: 30%; }
         }
-        /* CSS สำหรับ Loading ป้องกันการกดซ้ำ */
         #loadingOverlay {
             position: fixed; top:0; left:0; width:100%; height:100%;
             background: rgba(255,255,255,0.8); z-index: 9999;
@@ -30,14 +29,8 @@
     <div class="card shadow">
         <div class="card-body p-4">
             <h4 class="text-center text-primary fw-bold mb-4">เข้าสู่ระบบ NAF</h4>
-            <div class="mb-3">
-                <label>Username</label>
-                <input type="text" id="loginUser" class="form-control" placeholder="ชื่อผู้ใช้งาน">
-            </div>
-            <div class="mb-4">
-                <label>Password</label>
-                <input type="password" id="loginPass" class="form-control" placeholder="รหัสผ่าน">
-            </div>
+            <div class="mb-3"><label>Username</label><input type="text" id="loginUser" class="form-control" placeholder="ชื่อผู้ใช้งาน"></div>
+            <div class="mb-4"><label>Password</label><input type="password" id="loginPass" class="form-control" placeholder="รหัสผ่าน"></div>
             <button class="btn btn-primary w-100 py-2 fw-bold" id="btnLogin" onclick="login()">เข้าสู่ระบบ</button>
         </div>
     </div>
@@ -56,6 +49,7 @@
     <ul class="nav nav-tabs mb-3" id="mainTab" role="tablist">
         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#formSection">ฟอร์มประเมิน NAF</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reportSection" onclick="loadAllHistory()">รายงานประวัติผู้ป่วย</button></li>
+        <li class="nav-item" id="tabAdmin" style="display:none;"><button class="nav-link text-danger" data-bs-toggle="tab" data-bs-target="#adminSection" onclick="loadUsers()">จัดการผู้ใช้งาน (Admin)</button></li>
     </ul>
 
     <div class="tab-content">
@@ -88,16 +82,10 @@
                     </div>
                     
                     <div class="mb-2"><b>2.1 น้ำหนัก (การชั่ง)</b><br>
-                        <input type="radio" class="c-score" name="q2_1" value="1" data-l="ท่านอน"> ชั่งในท่านอน (1) |
-                        <input type="radio" class="c-score" name="q2_1" value="0" data-l="ท่ายืน"> ชั่งในท่ายืน (0) |
-                        <input type="radio" class="c-score" name="q2_1" value="0" data-l="ชั่งไม่ได้"> ชั่งไม่ได้ (0) |
-                        <input type="radio" class="c-score" name="q2_1" value="0" data-l="ญาติบอก"> ญาติบอก (0)
+                        <input type="radio" class="c-score" name="q2_1" value="1" data-l="ท่านอน"> ชั่งในท่านอน (1) | <input type="radio" class="c-score" name="q2_1" value="0" data-l="ท่ายืน"> ชั่งในท่ายืน (0) | <input type="radio" class="c-score" name="q2_1" value="0" data-l="ชั่งไม่ได้"> ชั่งไม่ได้ (0) | <input type="radio" class="c-score" name="q2_1" value="0" data-l="ญาติบอก"> ญาติบอก (0)
                     </div>
                     <div class="mb-2"><b>2.2 BMI (คะแนนจาก BMI)</b><br>
-                        <input type="radio" class="c-score" name="q2_2" id="bmi_2" value="2" data-l="<17"> < 17.0 (2) |
-                        <input type="radio" class="c-score" name="q2_2" id="bmi_1a" value="1" data-l="17-18"> 17.0-18.0 (1) |
-                        <input type="radio" class="c-score" name="q2_2" id="bmi_0" value="0" data-l="18.1-29.9"> 18.1-29.9 (0) |
-                        <input type="radio" class="c-score" name="q2_2" id="bmi_1b" value="1" data-l=">=30"> >= 30.0 (1)
+                        <input type="radio" class="c-score" name="q2_2" id="bmi_2" value="2" data-l="<17"> < 17.0 (2) | <input type="radio" class="c-score" name="q2_2" id="bmi_1a" value="1" data-l="17-18"> 17.0-18.0 (1) | <input type="radio" class="c-score" name="q2_2" id="bmi_0" value="0" data-l="18.1-29.9"> 18.1-29.9 (0) | <input type="radio" class="c-score" name="q2_2" id="bmi_1b" value="1" data-l=">=30"> >= 30.0 (1)
                     </div>
 
                     <div class="form-check mt-3">
@@ -113,21 +101,17 @@
 
                 <div class="box row">
                     <div class="col-md-6 mb-3"><b>3. รูปร่างผู้ป่วย</b><br>
-                        <input type="radio" class="c-score" name="q3" value="2" data-l="ผอมมาก"> ผอมมาก (2) | <input type="radio" class="c-score" name="q3" value="1" data-l="ผอม"> ผอม (1) <br>
-                        <input type="radio" class="c-score" name="q3" value="1" data-l="อ้วนมาก"> อ้วนมาก (1) | <input type="radio" class="c-score" name="q3" value="0" data-l="ปกติ/อ้วนปานกลาง"> ปกติ-อ้วนปานกลาง (0)
+                        <input type="radio" class="c-score" name="q3" value="2" data-l="ผอมมาก"> ผอมมาก (2) | <input type="radio" class="c-score" name="q3" value="1" data-l="ผอม"> ผอม (1) <br> <input type="radio" class="c-score" name="q3" value="1" data-l="อ้วนมาก"> อ้วนมาก (1) | <input type="radio" class="c-score" name="q3" value="0" data-l="ปกติ/อ้วนปานกลาง"> ปกติ-อ้วนปานกลาง (0)
                     </div>
                     <div class="col-md-6 mb-3"><b>4. น้ำหนักเปลี่ยน(4 สัปดาห์)</b><br>
-                        <input type="radio" class="c-score" name="q4" value="2" data-l="ลดลง"> ลดลง (2) | <input type="radio" class="c-score" name="q4" value="1" data-l="เพิ่มขึ้น"> เพิ่มขึ้น (1) <br>
-                        <input type="radio" class="c-score" name="q4" value="0" data-l="คงเดิม"> คงเดิม (0) | <input type="radio" class="c-score" name="q4" value="0" data-l="ไม่ทราบ"> ไม่ทราบ (0)
+                        <input type="radio" class="c-score" name="q4" value="2" data-l="ลดลง"> ลดลง (2) | <input type="radio" class="c-score" name="q4" value="1" data-l="เพิ่มขึ้น"> เพิ่มขึ้น (1) <br> <input type="radio" class="c-score" name="q4" value="0" data-l="คงเดิม"> คงเดิม (0) | <input type="radio" class="c-score" name="q4" value="0" data-l="ไม่ทราบ"> ไม่ทราบ (0)
                     </div>
                     
                     <div class="col-md-6 mb-3"><b>5.1 ลักษณะอาหาร</b><br>
-                        <input type="radio" class="c-score" name="q5_1" value="2" data-l="อาหารน้ำๆ"> อาหารน้ำๆ (2) | <input type="radio" class="c-score" name="q5_1" value="2" data-l="อาหารเหลวๆ"> อาหารเหลวๆ (2) <br>
-                        <input type="radio" class="c-score" name="q5_1" value="1" data-l="นุ่มกว่าปกติ"> นุ่มกว่าปกติ (1) | <input type="radio" class="c-score" name="q5_1" value="0" data-l="เหมือนปกติ"> เหมือนปกติ (0)
+                        <input type="radio" class="c-score" name="q5_1" value="2" data-l="อาหารน้ำๆ"> อาหารน้ำๆ (2) | <input type="radio" class="c-score" name="q5_1" value="2" data-l="อาหารเหลวๆ"> อาหารเหลวๆ (2) <br> <input type="radio" class="c-score" name="q5_1" value="1" data-l="นุ่มกว่าปกติ"> นุ่มกว่าปกติ (1) | <input type="radio" class="c-score" name="q5_1" value="0" data-l="เหมือนปกติ"> เหมือนปกติ (0)
                     </div>
                     <div class="col-md-6 mb-3"><b>5.2 ปริมาณที่กิน</b><br>
-                        <input type="radio" class="c-score" name="q5_2" value="2" data-l="กินน้อยมาก"> กินน้อยมาก (2) | <input type="radio" class="c-score" name="q5_2" value="1" data-l="กินน้อยลง"> กินน้อยลง (1) <br>
-                        <input type="radio" class="c-score" name="q5_2" value="0" data-l="กินเท่าปกติ"> กินเท่าปกติ (0) | <input type="radio" class="c-score" name="q5_2" value="0" data-l="กินมากขึ้น"> มากขึ้น (0)
+                        <input type="radio" class="c-score" name="q5_2" value="2" data-l="กินน้อยมาก"> กินน้อยมาก (2) | <input type="radio" class="c-score" name="q5_2" value="1" data-l="กินน้อยลง"> กินน้อยลง (1) <br> <input type="radio" class="c-score" name="q5_2" value="0" data-l="กินเท่าปกติ"> กินเท่าปกติ (0) | <input type="radio" class="c-score" name="q5_2" value="0" data-l="กินมากขึ้น"> มากขึ้น (0)
                     </div>
 
                     <div class="col-md-12 mb-3"><b>6. อาการต่อเนื่อง (เลือกได้มากกว่า 1)</b><br>
@@ -143,7 +127,7 @@
 
                 <div class="box">
                     <b>8. โรคประจำตัว (เลือกได้มากกว่า 1)</b><br>
-                    <div class="row">
+                    <div class="row mb-3">
                         <div class="col-md-4">
                             <input type="checkbox" class="c-score q8-chk" name="q8" value="6" data-l="Severe pneumonia"> Severe pneumonia (6)<br>
                             <input type="checkbox" class="c-score q8-chk" name="q8" value="6" data-l="Critically ill"> Critically ill (6)<br>
@@ -168,6 +152,11 @@
                             <input type="checkbox" class="c-score q8-chk" name="q8" id="chkOther3" value="3"> อื่นๆ (3 คะแนน) <input type="text" id="txtOther3" class="form-control form-control-sm d-inline-block mt-1" style="width: 150px;">
                         </div>
                     </div>
+                    
+                    <div class="border-top pt-3">
+                        <label class="fw-bold text-primary">รายละเอียดเพิ่มเติม / หมายเหตุ</label>
+                        <textarea class="form-control" name="details" id="details" rows="2" placeholder="กรอกข้อมูลเพิ่มเติมที่นี่..."></textarea>
+                    </div>
                 </div>
 
                 <div class="alert alert-success fs-5">
@@ -191,12 +180,8 @@
         <div class="tab-pane fade p-3 bg-white border" id="reportSection">
             <h4 class="text-primary mb-3">รายงานประวัติผู้ป่วยทั้งหมด</h4>
             <div class="row mb-3">
-                <div class="col-md-4">
-                    <input type="text" id="filterHN" class="form-control hn-format" placeholder="ค้นหาด้วย HN..." maxlength="7" oninput="filterTable()">
-                </div>
-                <div class="col-md-4">
-                    <input type="text" id="filterName" class="form-control" placeholder="ค้นหาด้วย ชื่อ-สกุล..." oninput="filterTable()">
-                </div>
+                <div class="col-md-4"><input type="text" id="filterHN" class="form-control hn-format" placeholder="ค้นหาด้วย HN..." maxlength="7" oninput="filterTable()"></div>
+                <div class="col-md-4"><input type="text" id="filterName" class="form-control" placeholder="ค้นหาด้วย ชื่อ-สกุล..." oninput="filterTable()"></div>
             </div>
             <table class="table table-striped table-bordered" id="historyTable">
                 <thead class="table-dark">
@@ -205,6 +190,35 @@
                 <tbody id="historyTableBody">
                     <tr><td colspan="7" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr>
                 </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade p-3 bg-white border" id="adminSection">
+            <h4 class="text-danger mb-3">ระบบจัดการผู้ใช้งาน (Admin Only)</h4>
+            <div class="box bg-light mb-4">
+                <h5>เพิ่ม / แก้ไขผู้ใช้งาน</h5>
+                <form id="userForm" class="row g-2">
+                    <input type="hidden" id="u_old_username">
+                    <div class="col-md-2"><label>Username</label><input type="text" id="u_username" class="form-control" required></div>
+                    <div class="col-md-2"><label>Password</label><input type="text" id="u_password" class="form-control" required></div>
+                    <div class="col-md-3"><label>ชื่อ-นามสกุลจริง</label><input type="text" id="u_fullname" class="form-control" required></div>
+                    <div class="col-md-2">
+                        <label>Role</label>
+                        <select id="u_role" class="form-select"><option value="Nurse">Nurse</option><option value="Dietitian">Dietitian</option><option value="Admin">Admin</option></select>
+                    </div>
+                    <div class="col-md-3"><label>Location</label><input type="text" id="u_location" class="form-control"></div>
+                    <div class="col-12 mt-2">
+                        <button type="button" class="btn btn-success" onclick="saveAdminUser('new')" id="btnSaveUser">เพิ่มผู้ใช้งานใหม่</button>
+                        <button type="button" class="btn btn-warning" onclick="saveAdminUser('edit')" id="btnEditUser" style="display:none;">บันทึกการแก้ไข</button>
+                        <button type="button" class="btn btn-secondary" onclick="resetUserForm()">ยกเลิก</button>
+                    </div>
+                </form>
+            </div>
+            <table class="table table-bordered">
+                <thead class="table-secondary">
+                    <tr><th>Username</th><th>ชื่อ-นามสกุล</th><th>Role</th><th>Location</th><th>จัดการ</th></tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
             </table>
         </div>
     </div>
@@ -219,7 +233,7 @@
     <h2 style="text-align:center;">Nutrition Alert Form (NAF) - สรุปการประเมิน</h2>
     <div style="display:flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px;">
         <div><b>HN:</b> <span id="pr_hn"></span><br><b>ชื่อ-สกุล:</b> <span id="pr_name"></span><br><b>อายุ:</b> <span id="pr_age"></span> ปี | <b>เพศ:</b> <span id="pr_gender"></span></div>
-        <div style="text-align: right;"><b>วันที่ประเมิน:</b> <span id="pr_date"></span><br><b>ผู้ประเมิน:</b> <span id="pr_assessor"></span><br><b>วันที่รับผู้ป่วย:</b> <span id="pr_admit"></span></div>
+        <div style="text-align: right;"><b>วันที่รับผู้ป่วย:</b> <span id="pr_admit"></span></div>
     </div>
     <table class="print-table">
         <tr><th>การวินิจฉัยเบื้องต้น</th><td id="pr_diag"></td></tr>
@@ -230,16 +244,21 @@
         <tr><th>6. อาการต่อเนื่อง</th><td>การกลืน: <span id="pr_q61"></span><br>ทางเดินอาหาร: <span id="pr_q62"></span><br>ปัญหาระหว่างกิน: <span id="pr_q63"></span></td></tr>
         <tr><th>7. การเข้าถึงอาหาร</th><td id="pr_q7"></td></tr>
         <tr><th>8. โรคประจำตัว</th><td id="pr_q8"></td></tr>
+        <tr><th>รายละเอียดเพิ่มเติม</th><td id="pr_details"></td></tr>
     </table>
     <div style="margin-top: 20px; padding: 15px; border: 2px solid #000; text-align: center; font-size: 1.2rem;">
         <b>คะแนนรวมที่ได้: <span id="pr_score" style="color:red;"></span> คะแนน</b> &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; 
         <b>จัดอยู่ในกลุ่ม: <span id="pr_result" style="color:red;"></span></b>
     </div>
+    <div style="margin-top: 15px; text-align: right; font-size: 1rem;">
+        <b>ผู้ประเมิน:</b> <span id="pr_assessor"></span><br>
+        <b>วันที่ประเมิน:</b> <span id="pr_date"></span>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwso9UG1NShqCxLGjigcAnHkHQGjH21N5Xnr2AbEJyU-95_88qso6IZFXx5JQhVw2to/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxggk8P62XPu-0r65NjInzdh3QjDXSKa3IzL3Ta8A2SFAHIgc9untlkNVsKSsuvqAjN/exec';
 
     // ================= ระบบ Login =================
     function login() {
@@ -250,46 +269,35 @@
         document.getElementById('btnLogin').innerText = "กำลังตรวจสอบ...";
         document.getElementById('btnLogin').disabled = true;
 
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'login', username: u, password: p })
-        }).then(r => r.json()).then(res => {
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'login', username: u, password: p }) })
+        .then(r => r.json()).then(res => {
             if(res.status === 'success') {
-                // เก็บข้อมูลการเข้าระบบ
-                document.getElementById('lblUser').innerText = res.username;
+                // แสดงชื่อ-นามสกุล แทน Username
+                document.getElementById('lblUser').innerText = res.fullname || res.username;
                 document.getElementById('lblLocation').innerText = res.location;
-                // ตั้งค่าผู้ประเมินให้อัตโนมัติและไม่ให้แก้ (Readonly ถูกตั้งไว้แล้วใน HTML)
-                document.getElementById('assessor').value = res.username;
+                document.getElementById('assessor').value = res.fullname || res.username;
                 
-                // สลับหน้าจอ
+                // เช็คสิทธิ์ Admin
+                if(res.role === 'Admin' || res.role === 'admin') {
+                    document.getElementById('tabAdmin').style.display = 'block';
+                }
+
                 document.getElementById('loginSection').style.display = 'none';
                 document.getElementById('mainAppSection').style.display = 'block';
-                
-                // ใส่วันที่ประเมินปัจจุบันให้อัตโนมัติ
                 document.getElementById('evalDate').value = new Date().toISOString().split('T')[0];
-            } else {
-                alert(res.message);
-            }
+            } else { alert(res.message); }
         }).finally(() => {
             document.getElementById('btnLogin').innerText = "เข้าสู่ระบบ";
             document.getElementById('btnLogin').disabled = false;
         });
     }
 
-    function logout() {
-        if(confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
-            location.reload();
-        }
-    }
-    // ===============================================
+    function logout() { if(confirm("ต้องการออกจากระบบใช่หรือไม่?")) location.reload(); }
 
-    // จัดการ HN 7 หลัก
+    // ================= ระบบฟอร์ม NAF =================
     document.querySelectorAll('.hn-format').forEach(el => {
         el.addEventListener('blur', function() {
-            if(this.value) {
-                let cleanVal = this.value.replace(/\D/g, ''); 
-                this.value = cleanVal.padStart(7, '0');
-            }
+            if(this.value) { this.value = this.value.replace(/\D/g, '').padStart(7, '0'); }
         });
     });
 
@@ -331,12 +339,10 @@
         document.getElementById('txtScore').innerText = total;
         document.getElementById('tScore').value = total;
         
-        let res = '';
-        let group = '';
+        let res = '', group = '';
         if (total <= 5) { res = 'NAF A: ปกติ ถึง ขาดสารอาหารเล็กน้อย'; group = 'A'; }
         else if (total <= 10) { res = 'NAF B: ขาดสารอาหารปานกลาง'; group = 'B'; }
         else { res = 'NAF C: ขาดสารอาหารรุนแรง'; group = 'C'; }
-        
         document.getElementById('txtResult').innerText = res;
         document.getElementById('rGroup').value = group;
     }
@@ -351,23 +357,16 @@
         document.getElementById('displayBMI').value = '';
         document.getElementById('toggleLab').checked = false;
         toggleLabDiv();
-        
-        // เติมค่าที่ถูกล้างกลับไป
         document.getElementById('assessor').value = document.getElementById('lblUser').innerText;
         document.getElementById('evalDate').value = new Date().toISOString().split('T')[0];
     }
 
-    function showLoading(text) {
-        document.getElementById('loadingText').innerText = text;
-        document.getElementById('loadingOverlay').style.display = 'flex';
-    }
-    function hideLoading() {
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }
+    function showLoading(text) { document.getElementById('loadingText').innerText = text; document.getElementById('loadingOverlay').style.display = 'flex'; }
+    function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
 
     function fetchPatient() {
         let hnEl = document.getElementById('searchHN');
-        if(hnEl.value) { hnEl.value = hnEl.value.replace(/\D/g, '').padStart(7, '0'); }
+        if(hnEl.value) hnEl.value = hnEl.value.replace(/\D/g, '').padStart(7, '0');
         const hn = hnEl.value;
         if(!hn) return alert('กรุณาระบุ HN');
         
@@ -378,7 +377,6 @@
             if(res.status === 'found') {
                 const latest = res.data[0]; 
                 clearForm();
-                
                 document.getElementById('recordId').value = latest.record_id;
                 document.getElementById('hn').value = latest.hn;
                 document.querySelector('input[name="name"]').value = latest.name;
@@ -390,7 +388,7 @@
                 document.getElementById('height').value = latest.height;
                 document.getElementById('weight').value = latest.weight;
                 document.getElementById('evalDate').value = latest.evalDate;
-                
+                document.getElementById('details').value = latest.details || ''; // ใส่ข้อมูลรายละเอียด
                 calcBMI();
 
                 const setChecks = (name, valStr) => {
@@ -400,40 +398,24 @@
                     });
                 };
                 
-                setChecks('q2_1', latest.q2_1);
-                setChecks('q2_2', latest.q2_2);
-                if(latest.lab && latest.lab !== '-') {
-                    document.getElementById('toggleLab').checked = true;
-                    toggleLabDiv();
-                    setChecks('lab', latest.lab);
-                }
-                setChecks('q3', latest.q3);
-                setChecks('q4', latest.q4);
-                setChecks('q5_1', latest.q5_1);
-                setChecks('q5_2', latest.q5_2);
-                setChecks('q6_1', latest.q6_1);
-                setChecks('q6_2', latest.q6_2);
-                setChecks('q6_3', latest.q6_3);
-                setChecks('q7', latest.q7);
+                setChecks('q2_1', latest.q2_1); setChecks('q2_2', latest.q2_2);
+                if(latest.lab && latest.lab !== '-') { document.getElementById('toggleLab').checked = true; toggleLabDiv(); setChecks('lab', latest.lab); }
+                setChecks('q3', latest.q3); setChecks('q4', latest.q4); setChecks('q5_1', latest.q5_1); setChecks('q5_2', latest.q5_2);
+                setChecks('q6_1', latest.q6_1); setChecks('q6_2', latest.q6_2); setChecks('q6_3', latest.q6_3); setChecks('q7', latest.q7);
 
                 if(latest.q8 && latest.q8 !== '-') {
                     document.querySelectorAll('input[name="q8"]').forEach(el => {
                         let l = el.getAttribute('data-l');
                         if(l && latest.q8.includes(l)) el.checked = true;
                     });
-                    let m6 = latest.q8.match(/อื่นๆ\(6\):\s*([^,]+)/);
-                    if(m6) { document.getElementById('chkOther6').checked = true; document.getElementById('txtOther6').value = m6[1]; }
-                    let m3 = latest.q8.match(/อื่นๆ\(3\):\s*([^,]+)/);
-                    if(m3) { document.getElementById('chkOther3').checked = true; document.getElementById('txtOther3').value = m3[1]; }
+                    let m6 = latest.q8.match(/อื่นๆ\(6\):\s*([^,]+)/); if(m6) { document.getElementById('chkOther6').checked = true; document.getElementById('txtOther6').value = m6[1]; }
+                    let m3 = latest.q8.match(/อื่นๆ\(3\):\s*([^,]+)/); if(m3) { document.getElementById('chkOther3').checked = true; document.getElementById('txtOther3').value = m3[1]; }
                 }
 
                 recalcScore();
                 document.getElementById('editBanner').classList.remove('d-none');
                 document.getElementById('btnEditSave').style.display = 'inline-block';
-            } else {
-                alert('ไม่พบประวัติ HN นี้ในระบบ');
-                clearForm();
-            }
+            } else { alert('ไม่พบประวัติ HN นี้ในระบบ'); clearForm(); }
         });
     }
 
@@ -464,17 +446,14 @@
                 q6_1: getVal('q6_1'), q6_2: getVal('q6_2'), q6_3: getVal('q6_3'),
                 q7: getVal('q7'), q8: getVal('q8'),
                 totalScore: fd.get('totalScore'), resultGroup: fd.get('resultGroup'),
-                assessor: fd.get('assessor'), evalDate: fd.get('evalDate')
+                assessor: fd.get('assessor'), evalDate: fd.get('evalDate'),
+                details: fd.get('details') // ดึงข้อมูลรายละเอียด
             }
         };
 
         showLoading('กำลังบันทึกข้อมูล...');
         fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) })
-        .then(r => r.json()).then(res => {
-            hideLoading();
-            alert('บันทึกสำเร็จ!');
-            clearForm();
-        });
+        .then(r => r.json()).then(res => { hideLoading(); alert('บันทึกสำเร็จ!'); clearForm(); });
     }
 
     let allHistoryData = [];
@@ -482,25 +461,19 @@
         document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="7" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr>';
         fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'fetch_all'}) })
         .then(r => r.json()).then(res => {
-            if(res.status === 'success') {
-                allHistoryData = res.data;
-                renderTable(allHistoryData);
-            }
+            if(res.status === 'success') { allHistoryData = res.data; renderTable(allHistoryData); }
         });
     }
 
     function renderTable(data) {
         let tbody = '';
-        if(data.length === 0) {
-            tbody = '<tr><td colspan="7" class="text-center text-muted">ไม่มีข้อมูล</td></tr>';
-        } else {
+        if(data.length === 0) tbody = '<tr><td colspan="7" class="text-center text-muted">ไม่มีข้อมูล</td></tr>';
+        else {
             data.forEach(r => {
                 let badgeClass = r.result === 'C' ? 'bg-danger' : (r.result === 'B' ? 'bg-warning' : 'bg-success');
-                tbody += `<tr>
-                    <td>${r.hn}</td><td>${r.name}</td><td>${r.evalDate}</td><td>${r.assessor}</td>
+                tbody += `<tr><td>${r.hn}</td><td>${r.name}</td><td>${r.evalDate}</td><td>${r.assessor}</td>
                     <td><strong>${r.total}</strong></td><td><span class="badge ${badgeClass}">NAF ${r.result}</span></td>
-                    <td><button class="btn btn-sm btn-info text-white" onclick="printFromHistory('${r.record_id}')">🖨️ พิมพ์</button></td>
-                </tr>`;
+                    <td><button class="btn btn-sm btn-info text-white" onclick="printFromHistory('${r.record_id}')">🖨️ พิมพ์</button></td></tr>`;
             });
         }
         document.getElementById('historyTableBody').innerHTML = tbody;
@@ -509,99 +482,128 @@
     function filterTable() {
         let filterHN = document.getElementById('filterHN').value.toLowerCase();
         let filterName = document.getElementById('filterName').value.toLowerCase();
-        let filteredData = allHistoryData.filter(r => 
-            r.hn.toLowerCase().includes(filterHN) && 
-            r.name.toLowerCase().includes(filterName)
-        );
+        let filteredData = allHistoryData.filter(r => r.hn.toLowerCase().includes(filterHN) && r.name.toLowerCase().includes(filterName));
         renderTable(filteredData);
     }
 
-    function printFromHistory(recordId) {
-        const r = allHistoryData.find(item => item.record_id === recordId);
-        if(!r) return;
-
-        document.getElementById('pr_hn').innerText = r.hn || '-';
-        document.getElementById('pr_name').innerText = r.name || '-';
-        document.getElementById('pr_age').innerText = r.age || '-';
-        document.getElementById('pr_gender').innerText = r.gender || '-';
-        document.getElementById('pr_date').innerText = r.evalDate || '-';
-        document.getElementById('pr_assessor').innerText = r.assessor || '-';
-        document.getElementById('pr_admit').innerText = r.admitDate || '-';
-        document.getElementById('pr_diag').innerText = r.diagnosis || '-';
-        
-        document.getElementById('pr_h').innerText = r.height || '-';
-        document.getElementById('pr_w').innerText = r.weight || '-';
-        let bmiVal = '-';
-        if(r.height > 0 && r.weight > 0) bmiVal = (r.weight / Math.pow(r.height/100, 2)).toFixed(1);
-        document.getElementById('pr_bmi').innerText = bmiVal;
-        
-        document.getElementById('pr_q21').innerText = r.q2_1 || '-';
-        document.getElementById('pr_q22').innerText = r.q2_2 || '-';
-        document.getElementById('pr_lab').innerText = r.lab || '-';
-        document.getElementById('pr_q3').innerText = r.q3 || '-';
-        document.getElementById('pr_q4').innerText = r.q4 || '-';
-        document.getElementById('pr_q51').innerText = r.q5_1 || '-';
-        document.getElementById('pr_q52').innerText = r.q5_2 || '-';
-        document.getElementById('pr_q61').innerText = r.q6_1 || '-';
-        document.getElementById('pr_q62').innerText = r.q6_2 || '-';
-        document.getElementById('pr_q63').innerText = r.q6_3 || '-';
-        document.getElementById('pr_q7').innerText = r.q7 || '-';
-        document.getElementById('pr_q8').innerText = r.q8 || '-';
-        
-        document.getElementById('pr_score').innerText = r.total;
-        let resText = '';
-        if (r.total <= 5) resText = 'NAF A: ปกติ ถึง ขาดสารอาหารเล็กน้อย';
-        else if (r.total <= 10) resText = 'NAF B: ขาดสารอาหารปานกลาง';
-        else resText = 'NAF C: ขาดสารอาหารรุนแรง';
-        document.getElementById('pr_result').innerText = resText;
-        
-        document.getElementById('printArea').style.display = 'block';
-        window.print();
-        document.getElementById('printArea').style.display = 'none';
+    // ================= ระบบ Admin จัดการผู้ใช้งาน =================
+    function loadUsers() {
+        document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
+        fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'get_users'}) })
+        .then(r => r.json()).then(res => {
+            let tr = '';
+            res.data.forEach(u => {
+                tr += `<tr><td>${u.username}</td><td>${u.fullname||'-'}</td><td>${u.role}</td><td>${u.location}</td>
+                <td><button class="btn btn-sm btn-warning" onclick="editUser('${u.username}', '${u.password}', '${u.role}', '${u.location}', '${u.fullname||''}')">แก้ไข</button>
+                <button class="btn btn-sm btn-danger" onclick="delUser('${u.username}')">ลบ</button></td></tr>`;
+            });
+            document.getElementById('usersTableBody').innerHTML = tr;
+        });
     }
 
-    function previewPrint() {
+    function resetUserForm() {
+        document.getElementById('userForm').reset();
+        document.getElementById('u_old_username').value = '';
+        document.getElementById('btnSaveUser').style.display = 'inline-block';
+        document.getElementById('btnEditUser').style.display = 'none';
+    }
+
+    function editUser(u, p, r, l, f) {
+        document.getElementById('u_old_username').value = u;
+        document.getElementById('u_username').value = u;
+        document.getElementById('u_password').value = p;
+        document.getElementById('u_role').value = r;
+        document.getElementById('u_location').value = l;
+        document.getElementById('u_fullname').value = f;
+        document.getElementById('btnSaveUser').style.display = 'none';
+        document.getElementById('btnEditUser').style.display = 'inline-block';
+    }
+
+    function saveAdminUser(mode) {
+        const payload = {
+            action: 'save_user', mode: mode,
+            data: {
+                old_username: document.getElementById('u_old_username').value,
+                username: document.getElementById('u_username').value,
+                password: document.getElementById('u_password').value,
+                role: document.getElementById('u_role').value,
+                location: document.getElementById('u_location').value,
+                fullname: document.getElementById('u_fullname').value
+            }
+        };
+        fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) })
+        .then(r => r.json()).then(res => { alert('บันทึกผู้ใช้สำเร็จ'); resetUserForm(); loadUsers(); });
+    }
+
+    function delUser(username) {
+        if(!confirm('ลบผู้ใช้งาน: ' + username + ' ใช่หรือไม่?')) return;
+        fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'delete_user', username: username}) })
+        .then(r => r.json()).then(res => { alert('ลบสำเร็จ'); loadUsers(); });
+    }
+
+    // ================= ฟังก์ชันพิมพ์ =================
+    function renderPrint(r) {
         const getText = (selector) => {
-            let r = Array.from(document.querySelectorAll(selector+':checked')).map(e => {
+            let res = Array.from(document.querySelectorAll(selector+':checked')).map(e => {
                 if(e.id === 'chkOther6') return `อื่นๆ: ${document.getElementById('txtOther6').value}`;
                 if(e.id === 'chkOther3') return `อื่นๆ: ${document.getElementById('txtOther3').value}`;
                 return e.getAttribute('data-l');
             });
-            return r.length ? r.join(', ') : '-';
+            return res.length ? res.join(', ') : '-';
         };
 
-        document.getElementById('pr_hn').innerText = document.getElementById('hn').value || '-';
-        document.getElementById('pr_name').innerText = document.querySelector('input[name="name"]').value || '-';
-        document.getElementById('pr_age').innerText = document.querySelector('input[name="age"]').value || '-';
-        document.getElementById('pr_gender').innerText = document.querySelector('select[name="gender"]').value || '-';
-        document.getElementById('pr_date').innerText = document.getElementById('evalDate').value || '-';
-        document.getElementById('pr_assessor').innerText = document.getElementById('assessor').value || '-';
-        document.getElementById('pr_admit').innerText = document.querySelector('input[name="admitDate"]').value || '-';
-        document.getElementById('pr_diag').innerText = document.querySelector('input[name="diagnosis"]').value || '-';
+        // ถ้ามาจาก History (r มีค่า) ใช้ค่าจาก r, ถ้ามาจากหน้าฟอร์ม (r ไม่มี) ดึงจาก DOM
+        document.getElementById('pr_hn').innerText = r ? r.hn : (document.getElementById('hn').value || '-');
+        document.getElementById('pr_name').innerText = r ? r.name : (document.querySelector('input[name="name"]').value || '-');
+        document.getElementById('pr_age').innerText = r ? r.age : (document.querySelector('input[name="age"]').value || '-');
+        document.getElementById('pr_gender').innerText = r ? r.gender : (document.querySelector('select[name="gender"]').value || '-');
+        document.getElementById('pr_admit').innerText = r ? r.admitDate : (document.querySelector('input[name="admitDate"]').value || '-');
+        document.getElementById('pr_diag').innerText = r ? r.diagnosis : (document.querySelector('input[name="diagnosis"]').value || '-');
         
-        document.getElementById('pr_h').innerText = document.getElementById('height').value || '-';
-        document.getElementById('pr_w').innerText = document.getElementById('weight').value || '-';
-        document.getElementById('pr_bmi').innerText = document.getElementById('displayBMI').value || '-';
-        document.getElementById('pr_q21').innerText = getText('input[name="q2_1"]');
-        document.getElementById('pr_q22').innerText = getText('input[name="q2_2"]');
-        document.getElementById('pr_lab').innerText = getText('input[name="lab"]');
-        document.getElementById('pr_q3').innerText = getText('input[name="q3"]');
-        document.getElementById('pr_q4').innerText = getText('input[name="q4"]');
-        document.getElementById('pr_q51').innerText = getText('input[name="q5_1"]');
-        document.getElementById('pr_q52').innerText = getText('input[name="q5_2"]');
-        document.getElementById('pr_q61').innerText = getText('input[name="q6_1"]');
-        document.getElementById('pr_q62').innerText = getText('input[name="q6_2"]');
-        document.getElementById('pr_q63').innerText = getText('input[name="q6_3"]');
-        document.getElementById('pr_q7').innerText = getText('input[name="q7"]');
-        document.getElementById('pr_q8').innerText = getText('input[name="q8"]');
+        let h = r ? r.height : document.getElementById('height').value;
+        let w = r ? r.weight : document.getElementById('weight').value;
+        document.getElementById('pr_h').innerText = h || '-';
+        document.getElementById('pr_w').innerText = w || '-';
+        document.getElementById('pr_bmi').innerText = (h > 0 && w > 0) ? (w / Math.pow(h/100, 2)).toFixed(1) : '-';
         
-        document.getElementById('pr_score').innerText = document.getElementById('tScore').value;
-        document.getElementById('pr_result').innerText = document.getElementById('txtResult').innerText;
+        document.getElementById('pr_q21').innerText = r ? (r.q2_1||'-') : getText('input[name="q2_1"]');
+        document.getElementById('pr_q22').innerText = r ? (r.q2_2||'-') : getText('input[name="q2_2"]');
+        document.getElementById('pr_lab').innerText = r ? (r.lab||'-') : getText('input[name="lab"]');
+        document.getElementById('pr_q3').innerText = r ? (r.q3||'-') : getText('input[name="q3"]');
+        document.getElementById('pr_q4').innerText = r ? (r.q4||'-') : getText('input[name="q4"]');
+        document.getElementById('pr_q51').innerText = r ? (r.q5_1||'-') : getText('input[name="q5_1"]');
+        document.getElementById('pr_q52').innerText = r ? (r.q5_2||'-') : getText('input[name="q5_2"]');
+        document.getElementById('pr_q61').innerText = r ? (r.q6_1||'-') : getText('input[name="q6_1"]');
+        document.getElementById('pr_q62').innerText = r ? (r.q6_2||'-') : getText('input[name="q6_2"]');
+        document.getElementById('pr_q63').innerText = r ? (r.q6_3||'-') : getText('input[name="q6_3"]');
+        document.getElementById('pr_q7').innerText = r ? (r.q7||'-') : getText('input[name="q7"]');
+        document.getElementById('pr_q8').innerText = r ? (r.q8||'-') : getText('input[name="q8"]');
+        document.getElementById('pr_details').innerText = r ? (r.details||'-') : (document.getElementById('details').value || '-');
+        
+        let score = r ? r.total : document.getElementById('tScore').value;
+        document.getElementById('pr_score').innerText = score;
+        
+        let resText = '';
+        if (score <= 5) resText = 'NAF A: ปกติ ถึง ขาดสารอาหารเล็กน้อย';
+        else if (score <= 10) resText = 'NAF B: ขาดสารอาหารปานกลาง';
+        else resText = 'NAF C: ขาดสารอาหารรุนแรง';
+        document.getElementById('pr_result').innerText = resText;
+
+        // นำผู้ประเมินและวันที่มาไว้ล่างสุด
+        document.getElementById('pr_assessor').innerText = r ? r.assessor : (document.getElementById('assessor').value || '-');
+        document.getElementById('pr_date').innerText = r ? r.evalDate : (document.getElementById('evalDate').value || '-');
         
         document.getElementById('printArea').style.display = 'block';
         window.print();
         document.getElementById('printArea').style.display = 'none';
     }
+
+    function printFromHistory(recordId) {
+        const r = allHistoryData.find(item => item.record_id === recordId);
+        if(r) renderPrint(r);
+    }
+
+    function previewPrint() { renderPrint(null); }
 </script>
 </body>
 </html>
