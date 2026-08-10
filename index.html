@@ -668,14 +668,37 @@
     }
 
     // ================= ฟังก์ชันการพิมพ์ =================
+// ================= ฟังก์ชันการพิมพ์ =================
     function renderPrint(r) {
-        const getText = (selector) => {
-            let res = Array.from(document.querySelectorAll(selector+':checked')).map(e => {
-                if(e.id === 'chkOther6') return `อื่นๆ: ${document.getElementById('txtOther6').value}`;
-                if(e.id === 'chkOther3') return `อื่นๆ: ${document.getElementById('txtOther3').value}`;
-                return e.getAttribute('data-l');
-            });
-            return res.length ? res.join(', ') : '-';
+        // ฟังก์ชันใหม่สำหรับดึงข้อความพร้อมคะแนน
+        const getPrintTextWithScore = (name, valStr) => {
+            if (r) {
+                // กรณีพิมพ์จากประวัติ (ดึงคะแนนโดยอ้างอิงจาก data-l กลับไปหา value)
+                if (!valStr || valStr === '-') return '-';
+                let parts = valStr.split(', ');
+                let res = parts.map(part => {
+                    let score = 0;
+                    // จัดการกรณีตัวเลือก "อื่นๆ"
+                    if (part.startsWith('อื่นๆ(6)')) return `${part.replace('อื่นๆ(6):', 'อื่นๆ:')} (6 คะแนน)`;
+                    if (part.startsWith('อื่นๆ(3)')) return `${part.replace('อื่นๆ(3):', 'อื่นๆ:')} (3 คะแนน)`;
+                    
+                    // ค้นหา element ที่ตรงกันเพื่อดึงคะแนน
+                    let el = document.querySelector(`input[name="${name}"][data-l="${part}"]`);
+                    if (el) score = el.value;
+                    return `${part} (${score} คะแนน)`;
+                });
+                return res.join(', ');
+            } else {
+                // กรณีพรีวิวก่อนบันทึก (ดึงคะแนนจาก attribute value ของ element ที่ถูก checked ได้เลย)
+                let res = Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(e => {
+                    let text = e.getAttribute('data-l');
+                    let score = e.value;
+                    if(e.id === 'chkOther6') text = `อื่นๆ: ${document.getElementById('txtOther6').value}`;
+                    if(e.id === 'chkOther3') text = `อื่นๆ: ${document.getElementById('txtOther3').value}`;
+                    return `${text} (${score} คะแนน)`;
+                });
+                return res.length ? res.join(', ') : '-';
+            }
         };
 
         document.getElementById('pr_hn').innerText = r ? r.hn : (document.getElementById('hn').value || '-');
@@ -693,18 +716,20 @@
         document.getElementById('pr_w').innerText = w || '-';
         document.getElementById('pr_bmi').innerText = (h > 0 && w > 0) ? (w / Math.pow(h/100, 2)).toFixed(1) : '-';
         
-        document.getElementById('pr_q21').innerText = r ? (r.q2_1||'-') : getText('input[name="q2_1"]');
-        document.getElementById('pr_q22').innerText = r ? (r.q2_2||'-') : getText('input[name="q2_2"]');
-        document.getElementById('pr_lab').innerText = r ? (r.lab||'-') : getText('input[name="lab"]');
-        document.getElementById('pr_q3').innerText = r ? (r.q3||'-') : getText('input[name="q3"]');
-        document.getElementById('pr_q4').innerText = r ? (r.q4||'-') : getText('input[name="q4"]');
-        document.getElementById('pr_q51').innerText = r ? (r.q5_1||'-') : getText('input[name="q5_1"]');
-        document.getElementById('pr_q52').innerText = r ? (r.q5_2||'-') : getText('input[name="q5_2"]');
-        document.getElementById('pr_q61').innerText = r ? (r.q6_1||'-') : getText('input[name="q6_1"]');
-        document.getElementById('pr_q62').innerText = r ? (r.q6_2||'-') : getText('input[name="q6_2"]');
-        document.getElementById('pr_q63').innerText = r ? (r.q6_3||'-') : getText('input[name="q6_3"]');
-        document.getElementById('pr_q7').innerText = r ? (r.q7||'-') : getText('input[name="q7"]');
-        document.getElementById('pr_q8').innerText = r ? (r.q8||'-') : getText('input[name="q8"]');
+        // ใช้ getPrintTextWithScore เพื่อให้แสดงข้อความ + (คะแนน)
+        document.getElementById('pr_q21').innerText = getPrintTextWithScore('q2_1', r ? r.q2_1 : null);
+        document.getElementById('pr_q22').innerText = getPrintTextWithScore('q2_2', r ? r.q2_2 : null);
+        document.getElementById('pr_lab').innerText = getPrintTextWithScore('lab', r ? r.lab : null);
+        document.getElementById('pr_q3').innerText = getPrintTextWithScore('q3', r ? r.q3 : null);
+        document.getElementById('pr_q4').innerText = getPrintTextWithScore('q4', r ? r.q4 : null);
+        document.getElementById('pr_q51').innerText = getPrintTextWithScore('q5_1', r ? r.q5_1 : null);
+        document.getElementById('pr_q52').innerText = getPrintTextWithScore('q5_2', r ? r.q5_2 : null);
+        document.getElementById('pr_q61').innerText = getPrintTextWithScore('q6_1', r ? r.q6_1 : null);
+        document.getElementById('pr_q62').innerText = getPrintTextWithScore('q6_2', r ? r.q6_2 : null);
+        document.getElementById('pr_q63').innerText = getPrintTextWithScore('q6_3', r ? r.q6_3 : null);
+        document.getElementById('pr_q7').innerText = getPrintTextWithScore('q7', r ? r.q7 : null);
+        document.getElementById('pr_q8').innerText = getPrintTextWithScore('q8', r ? r.q8 : null);
+        
         document.getElementById('pr_details').innerText = r ? (r.details||'-') : (document.getElementById('details').value || '-');
         
         let score = r ? r.total : document.getElementById('tScore').value;
