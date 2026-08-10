@@ -12,9 +12,13 @@
             #printArea, #printArea * { visibility: visible; }
             #printArea { position: absolute; left: 0; top: 0; width: 100%; }
             .no-print { display: none !important; }
-            .print-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 15px; page-break-inside: auto; }
             .print-table th, .print-table td { border: 1px solid #000; padding: 8px; text-align: left; }
             .print-table th { background-color: #f2f2f2; width: 30%; }
+            
+            /* เพิ่ม 2 บรรทัดนี้ป้องกันการตัดแถว/ตารางขาดครึ่งตอนขึ้นหน้าใหม่ */
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            td { page-break-inside: avoid; page-break-after: auto; }
         }
         #loadingOverlay {
             position: fixed; top:0; left:0; width:100%; height:100%;
@@ -259,7 +263,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbzhfpCY7ofHMb8IZ1872yNLikAbJvpcLq5t_T9N28O7vD-n6eXIkdEm9fYtcMe5xBRR/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbxAX9kusJMf1WZ1Gg-qp_qtaSl0xdWR2awapcU_wR-mVQ4aBk96FNN-YwbdNsCvSKri/exec';
     let allHistoryData = [];
     let groupedHistory = {}; 
     let allLogsData = []; // เก็บข้อมูล Log
@@ -458,7 +462,35 @@
         let hnEl = document.getElementById('hn');
         if(hnEl.value) hnEl.value = hnEl.value.replace(/\D/g, '').padStart(7, '0');
         if(!hnEl.value) return alert('กรุณาระบุ HN ให้ถูกต้อง');
+        
+        const reqFields = [
+            { id: 'pName', name: 'ชื่อ-สกุล' },
+            { id: 'evalDate', name: 'วันที่ประเมิน' }
+        ];
+        for(let field of reqFields) {
+            if(!document.getElementById(field.id).value) return alert(`กรุณาระบุ: ${field.name}`);
+        }
 
+        let isLabActive = document.getElementById('toggleLab').checked;
+        if(!isLabActive) {
+            if(!document.querySelector('input[name="q2_1"]:checked')) return alert('กรุณาประเมินข้อ 2.1 (น้ำหนัก การชั่ง)');
+            if(!document.querySelector('input[name="q2_2"]:checked')) return alert('กรุณาประเมินข้อ 2.2 (BMI)');
+        } else {
+            if(!document.querySelector('input[name="lab"]:checked')) return alert('กรุณาประเมินผล Lab แทนข้อ 2');
+        }
+
+        const requiredRadios = [
+            { name: 'q3', label: 'ข้อ 3 รูปร่างผู้ป่วย' },
+            { name: 'q4', label: 'ข้อ 4 น้ำหนักเปลี่ยน' },
+            { name: 'q5_1', label: 'ข้อ 5.1 ลักษณะอาหาร' },
+            { name: 'q5_2', label: 'ข้อ 5.2 ปริมาณที่กิน' },
+            { name: 'q7', label: 'ข้อ 7 การเข้าถึงอาหาร' }
+        ];
+        for(let r of requiredRadios) {
+            if(!document.querySelector(`input[name="${r.name}"]:checked`)) {
+                return alert(`กรุณาประเมิน: ${r.label}`);
+            }
+        }
         const fd = new FormData(document.getElementById('nafForm'));
         const getVal = (name) => {
             let arr = Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(e => {
