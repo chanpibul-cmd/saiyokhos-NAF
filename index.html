@@ -2,13 +2,17 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
+    <!-- รองรับการแสดงผลบนมือถือและแท็บเล็ต -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NAF System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- ไลบรารีทำกราฟ Dashboard -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background-color: #f8f9fa; }
         .box { background: white; padding: 15px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 15px; }
+        
+        /* การตั้งค่าสำหรับการพิมพ์ */
         @media print {
             body * { visibility: hidden; }
             #printArea, #printArea * { visibility: visible; }
@@ -17,11 +21,11 @@
             .print-table { width: 100%; border-collapse: collapse; margin-top: 15px; page-break-inside: auto; }
             .print-table th, .print-table td { border: 1px solid #000; padding: 8px; text-align: left; }
             .print-table th { background-color: #f2f2f2; width: 30%; }
-            
-            /* เพิ่ม 2 บรรทัดนี้ป้องกันการตัดแถว/ตารางขาดครึ่งตอนขึ้นหน้าใหม่ */
+            /* ป้องกันตารางถูกตัดขาดครึ่งหน้า */
             tr { page-break-inside: avoid; page-break-after: auto; }
             td { page-break-inside: avoid; page-break-after: auto; }
         }
+        
         #loadingOverlay {
             position: fixed; top:0; left:0; width:100%; height:100%;
             background: rgba(255,255,255,0.8); z-index: 9999;
@@ -30,11 +34,7 @@
         .search-result-item { cursor: pointer; transition: 0.2s; }
         .search-result-item:hover { background-color: #f1f8ff; }
         
-        /* สไตล์สำหรับตาราง Log */
-        .log-table-wrapper { max-height: 500px; overflow-y: auto; }
-        .log-table-wrapper thead th { position: sticky; top: 0; background-color: #343a40; color: white; z-index: 1; }
-    
-    /* เพิ่ม CSS สำหรับเมนูแท็บบนมือถือ */
+        /* สไตล์สำหรับเมนูแท็บบนมือถือให้เลื่อนซ้ายขวาได้ */
         .nav-tabs {
             flex-wrap: nowrap;
             overflow-x: auto;
@@ -43,13 +43,17 @@
             white-space: nowrap;
             padding-bottom: 5px;
         }
-        /* ตกแต่งแถบ Scrollbar ให้ดูเล็กและสวยงาม */
         .nav-tabs::-webkit-scrollbar { height: 4px; }
         .nav-tabs::-webkit-scrollbar-thumb { background: #adb5bd; border-radius: 4px; }
+        
+        /* สไตล์สำหรับตาราง Log */
+        .log-table-wrapper { max-height: 500px; overflow-y: auto; overflow-x: auto; }
+        .log-table-wrapper thead th { position: sticky; top: 0; background-color: #343a40; color: white; z-index: 1; }
     </style>
 </head>
 <body>
 
+<!-- หน้า Login -->
 <div id="loginSection" class="container mt-5" style="max-width: 400px; display: none;">
     <div class="card shadow">
         <div class="card-body p-4">
@@ -61,59 +65,33 @@
     </div>
 </div>
 
+<!-- หน้าหลักของแอปพลิเคชัน -->
 <div id="mainAppSection" class="container py-3 no-print" style="display: none;">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="text-primary fw-bold mb-0">Nutrition Alert Form (NAF)</h3>
         <div class="text-end">
-            <span class="fw-bold">ผู้ใช้งาน:</span> <span id="lblUser" class="text-primary fw-bold"></span>
-            (<span id="lblLocation" class="text-muted"></span>)
-            <button class="btn btn-sm btn-outline-danger ms-2" onclick="logout()">ออกจากระบบ</button>
+            <span class="fw-bold d-none d-md-inline">ผู้ใช้งาน:</span> <span id="lblUser" class="text-primary fw-bold"></span>
+            <span class="d-none d-md-inline">(<span id="lblLocation" class="text-muted"></span>)</span>
+            <button class="btn btn-sm btn-outline-danger ms-2" onclick="logout()">ออก</button>
         </div>
     </div>
     
+    <!-- เมนูแท็บ -->
     <ul class="nav nav-tabs mb-3" id="mainTab" role="tablist">
         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#formSection">ฟอร์มประเมิน NAF</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reportSection" onclick="loadAllHistory()">รายงานประวัติผู้ป่วย</button></li>
-        <li class="nav-item"><button class="nav-link text-success fw-bold" data-bs-toggle="tab" data-bs-target="#dashboardSection">Dashboard สถิติ</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reportSection" onclick="loadAllHistory()">รายงานประวัติ</button></li>
+        <li class="nav-item"><button class="nav-link text-success fw-bold" data-bs-toggle="tab" data-bs-target="#dashboardSection">Dashboard</button></li>
         <li class="nav-item" id="tabAdmin" style="display:none;"><button class="nav-link text-danger fw-bold" data-bs-toggle="tab" data-bs-target="#adminSection" onclick="loadUsers()">จัดการผู้ใช้ (Admin)</button></li>
-        <li class="nav-item" id="tabLogs" style="display:none;"><button class="nav-link text-danger fw-bold" data-bs-toggle="tab" data-bs-target="#logSection" onclick="loadLogs()">ดู Log ระบบ</button></li>
+        <li class="nav-item" id="tabLogs" style="display:none;"><button class="nav-link text-danger fw-bold" data-bs-toggle="tab" data-bs-target="#logSection" onclick="loadLogs()">ดู Log</button></li>
     </ul>
 
     <div class="tab-content">
-<!-- เนื้อหาหน้า Dashboard (Web App) -->
-        <div class="tab-pane fade p-3 bg-white border" id="dashboardSection">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="text-success fw-bold mb-0">📊 Dashboard สถิติ NAF</h4>
-                <button class="btn btn-sm btn-outline-success" onclick="renderDashboard()">🔄 รีเฟรชข้อมูล</button>
-            </div>
-            
-            <div class="row g-4">
-                <!-- กราฟที่ 1: สัดส่วนผู้ป่วยตามกลุ่ม NAF -->
-                <div class="col-md-5">
-                    <div class="card shadow-sm h-100 border-0 bg-light">
-                        <div class="card-body">
-                            <h6 class="card-title text-center fw-bold text-secondary mb-3">สัดส่วนผู้ป่วยกลุ่ม A, B, C (ทั้งหมด)</h6>
-                            <canvas id="nafPieChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- กราฟที่ 2: จำนวนผู้ป่วยที่ได้รับการประเมินรายเดือน -->
-                <div class="col-md-7">
-                    <div class="card shadow-sm h-100 border-0 bg-light">
-                        <div class="card-body">
-                            <h6 class="card-title text-center fw-bold text-secondary mb-3">แนวโน้มการประเมิน (รายเดือน)</h6>
-                            <canvas id="nafBarChart" style="max-height: 300px;"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- แท็บ 1: ฟอร์มประเมิน -->
         <div class="tab-pane fade show active" id="formSection">
-            <div class="alert alert-info d-flex align-items-center mb-3">
-                <button class="btn btn-primary me-3 fw-bold shadow-sm" onclick="openSearchModal()">🔍 ค้นหา/ดึงประวัติผู้ป่วย</button>
-                <button class="btn btn-outline-secondary btn-sm" onclick="clearForm()">+ สร้างฟอร์มว่าง</button>
-                <span id="editBanner" class="badge bg-warning ms-3 text-dark d-none fs-6">📌 กำลังแสดงข้อมูลประวัติที่ดึงมา (สามารถอัปเดตได้)</span>
+            <div class="alert alert-info d-flex align-items-center mb-3 flex-wrap">
+                <button class="btn btn-primary me-3 fw-bold shadow-sm mb-2" onclick="openSearchModal()">🔍 ค้นหา/ดึงประวัติผู้ป่วย</button>
+                <button class="btn btn-outline-secondary btn-sm mb-2" onclick="clearForm()">+ สร้างฟอร์มว่าง</button>
+                <span id="editBanner" class="badge bg-warning ms-md-3 text-dark d-none fs-6 mb-2">📌 กำลังแก้ไขประวัติเก่า</span>
                 <input type="hidden" id="recordId">
             </div>
 
@@ -177,7 +155,7 @@
                     </div>
                 </div>
 
-                <div class="alert alert-success fs-5">
+                <div class="alert alert-success fs-5 text-center text-md-start">
                     <b>คะแนนรวม: <span id="txtScore">0</span> | กลุ่ม: <span id="txtResult">-</span></b>
                     <input type="hidden" name="totalScore" id="tScore"><input type="hidden" name="resultGroup" id="rGroup">
                 </div>
@@ -185,43 +163,78 @@
                 <div class="row g-2 mb-3 align-items-end">
                     <div class="col-md-4"><label>ผู้ประเมิน</label><input type="text" name="assessor" id="assessor" class="form-control fw-bold text-primary" readonly></div>
                     <div class="col-md-4"><label>วันที่ประเมิน (และเวลา)</label><input type="datetime-local" name="evalDate" id="evalDate" class="form-control" required></div>
-                    <div class="col-md-4 text-end">
-                        <button type="button" class="btn btn-secondary me-2" onclick="previewPrint()">พรีวิวพิมพ์ฟอร์ม</button>
-                        <button type="button" class="btn btn-warning" id="btnEditSave" onclick="submitData('edit')" style="display:none;">อัปเดตข้อมูลเก่า</button>
-                        <button type="button" class="btn btn-primary" id="btnNewSave" onclick="submitData('new')">บันทึกประเมินใหม่</button>
+                    <div class="col-md-4 text-md-end text-center mt-3 mt-md-0">
+                        <button type="button" class="btn btn-secondary me-1" onclick="previewPrint()">พรีวิวพิมพ์ฟอร์ม</button>
+                        <button type="button" class="btn btn-warning me-1" id="btnEditSave" onclick="submitData('edit')" style="display:none;">อัปเดตข้อมูล</button>
+                        <button type="button" class="btn btn-primary" id="btnNewSave" onclick="submitData('new')">บันทึกใหม่</button>
                     </div>
                 </div>
             </form>
         </div>
 
-<div class="tab-pane fade p-3 bg-white border" id="reportSection">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="text-primary mb-0">รายงานประวัติผู้ป่วยทั้งหมด</h4>
+        <!-- แท็บ 2: รายงานประวัติผู้ป่วย -->
+        <div class="tab-pane fade p-3 bg-white border" id="reportSection">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                <h4 class="text-primary mb-2 mb-md-0">รายงานประวัติผู้ป่วยทั้งหมด</h4>
                 <button class="btn btn-success" onclick="exportToCSV()">⬇️ ดาวน์โหลด CSV</button>
             </div>
             
             <div class="row mb-3">
-                <div class="col-md-4"><input type="text" id="filterHN" class="form-control hn-format" placeholder="ค้นหาด้วย HN..." maxlength="7" oninput="filterTable()"></div>
+                <div class="col-md-4 mb-2 mb-md-0"><input type="text" id="filterHN" class="form-control hn-format" placeholder="ค้นหาด้วย HN..." maxlength="7" oninput="filterTable()"></div>
                 <div class="col-md-4"><input type="text" id="filterName" class="form-control" placeholder="ค้นหาด้วย ชื่อ-สกุล..." oninput="filterTable()"></div>
             </div>
 
             <!-- กล่องรายการสรุปมัดรวม -->
             <div class="row mb-3 bg-light p-2 rounded border mx-0">
-                <div class="col-md-3 text-center"><b>จำนวนทั้งหมด:</b> <span id="summaryTotal" class="text-primary fs-5">0</span></div>
-                <div class="col-md-3 text-center"><b>NAF A:</b> <span id="summaryA" class="text-success fs-5">0</span></div>
-                <div class="col-md-3 text-center"><b>NAF B:</b> <span id="summaryB" class="text-warning fs-5">0</span></div>
+                <div class="col-md-3 text-center mb-2 mb-md-0"><b>จำนวนทั้งหมด:</b> <span id="summaryTotal" class="text-primary fs-5">0</span></div>
+                <div class="col-md-3 text-center mb-2 mb-md-0"><b>NAF A:</b> <span id="summaryA" class="text-success fs-5">0</span></div>
+                <div class="col-md-3 text-center mb-2 mb-md-0"><b>NAF B:</b> <span id="summaryB" class="text-warning fs-5">0</span></div>
                 <div class="col-md-3 text-center"><b>NAF C (วิกฤต):</b> <span id="summaryC" class="text-danger fs-5">0</span></div>
             </div>
 
-<!-- ครอบตารางประวัติผู้ป่วย -->
             <div class="table-responsive">
-                <table class="table table-striped table-bordered" id="historyTable">
+                <table class="table table-striped table-bordered" id="historyTable" style="min-width: 700px;">
                     <thead class="table-dark"><tr><th>HN</th><th>ชื่อ-สกุล</th><th>วันที่ประเมิน</th><th>ผู้ประเมิน</th><th>คะแนนรวม</th><th>ผลประเมิน</th><th>การจัดการ</th></tr></thead>
                     <tbody id="historyTableBody"><tr><td colspan="7" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr></tbody>
                 </table>
             </div>
         </div>
-<div class="table-responsive">
+
+        <!-- แท็บ 3: Dashboard สถิติ (Chart.js) -->
+        <div class="tab-pane fade p-3 bg-white border" id="dashboardSection">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="text-success fw-bold mb-0">📊 Dashboard สถิติ NAF</h4>
+                <button class="btn btn-sm btn-outline-success" onclick="renderDashboard()">🔄 รีเฟรชข้อมูล</button>
+            </div>
+            
+            <div class="row g-4">
+                <!-- กราฟที่ 1: สัดส่วนผู้ป่วยตามกลุ่ม NAF -->
+                <div class="col-md-5">
+                    <div class="card shadow-sm border-0 bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title text-center fw-bold text-secondary mb-3">สัดส่วนผู้ป่วยกลุ่ม A, B, C (ทั้งหมด)</h6>
+                            <div style="position: relative; height: 300px; width: 100%;">
+                                <canvas id="nafPieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- กราฟที่ 2: จำนวนผู้ป่วยที่ได้รับการประเมินรายเดือน -->
+                <div class="col-md-7">
+                    <div class="card shadow-sm border-0 bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title text-center fw-bold text-secondary mb-3">แนวโน้มการประเมิน (รายเดือน)</h6>
+                            <div style="position: relative; height: 300px; width: 100%;">
+                                <canvas id="nafBarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- แท็บ 4: ระบบจัดการผู้ใช้งาน (Admin) -->
         <div class="tab-pane fade p-3 bg-white border" id="adminSection">
             <h4 class="text-danger mb-3">ระบบจัดการผู้ใช้งาน (Admin Only)</h4>
             <div class="box bg-light mb-4">
@@ -243,28 +256,29 @@
                     </div>
                 </form>
             </div>
-            <table class="table table-bordered">
-                <thead class="table-secondary">
-                    <tr><th>Username</th><th>ชื่อ-นามสกุล</th><th>Role</th><th>Location</th><th>จัดการ</th></tr>
-                </thead>
-                <tbody id="usersTableBody"></tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-bordered" style="min-width: 600px;">
+                    <thead class="table-secondary">
+                        <tr><th>Username</th><th>ชื่อ-นามสกุล</th><th>Role</th><th>Location</th><th>จัดการ</th></tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
         </div>
- </div>
-  <div class="table-responsive">                           
+
+        <!-- แท็บ 5: ดู Log ระบบ -->
         <div class="tab-pane fade p-3 bg-white border" id="logSection">
             <h4 class="text-danger mb-3">ประวัติการใช้งานระบบ (System Logs)</h4>
             <div class="row mb-3">
-                <div class="col-md-4">
+                <div class="col-md-4 mb-2 mb-md-0">
                     <input type="text" id="filterLogInput" class="form-control" placeholder="ค้นหา Username หรือ Action..." oninput="filterLogTable()">
                 </div>
-                <div class="col-md-8 text-end">
+                <div class="col-md-8 text-md-end">
                     <button class="btn btn-primary" onclick="loadLogs()">รีเฟรช Log ใหม่</button>
                 </div>
             </div>
-              </div>
             <div class="log-table-wrapper">
-                <table class="table table-striped table-bordered table-sm" style="font-size: 0.9rem;">
+                <table class="table table-striped table-bordered table-sm" style="font-size: 0.9rem; min-width: 700px;">
                     <thead>
                         <tr><th>วันเวลา</th><th>ผู้ใช้งาน</th><th>Action</th><th>เป้าหมาย (HN)</th><th>IP Address</th><th>อุปกรณ์ (เบราว์เซอร์)</th></tr>
                     </thead>
@@ -277,6 +291,7 @@
     </div>
 </div>
 
+<!-- Modal ค้นหาผู้ป่วย -->
 <div class="modal fade" id="searchModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
@@ -297,6 +312,7 @@
     <h4 class="mt-3 text-primary" id="loadingText">กำลังประมวลผล...</h4>
 </div>
 
+<!-- ส่วนสำหรับการพิมพ์ -->
 <div id="printArea" style="visibility:hidden; display:none; background:white;">
     <h2 style="text-align:center;">Nutrition Alert Form (NAF) - สรุปการประเมิน</h2>
     <div style="display:flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px;">
@@ -305,7 +321,7 @@
     </div>
     <table class="print-table">
         <tr><th>การวินิจฉัยเบื้องต้น</th><td id="pr_diag"></td></tr>
-        <tr><th>1-2. สัดส่วนและน้ำหนัก</th><td>ส่วนสูง: <span id="pr_h"></span> ซม. | น้ำหนัก: <span id="pr_w"></span> กก. | BMI: <span id="pr_bmi"></span><br>การชั่ง: <span id="pr_q21"></span> | คะแนน BMI: <span id="pr_q22"></span> | Lab: <span id="pr_lab"></span></td></tr>
+        <tr><th>1-2. สัดส่วนและน้ำหนัก</th><td>ส่วนสูง: <span id="pr_h"></span> ซม. | น้ำหนัก: <span id="pr_w"></span> กก. | BMI: <span id="pr_bmi"></span><br>การชั่ง: <span id="pr_q21"></span><br>คะแนน BMI: <span id="pr_q22"></span><br>Lab: <span id="pr_lab"></span></td></tr>
         <tr><th>3. รูปร่างผู้ป่วย</th><td id="pr_q3"></td></tr>
         <tr><th>4. น้ำหนักเปลี่ยน</th><td id="pr_q4"></td></tr>
         <tr><th>5. อาหารที่กิน</th><td>ลักษณะ: <span id="pr_q51"></span><br>ปริมาณ: <span id="pr_q52"></span></td></tr>
@@ -329,7 +345,9 @@
     const GAS_URL = 'https://script.google.com/macros/s/AKfycbwui93HvSKw6pUB3ybQzBAxDqhKzsk4ld8CWtQG1P9CW07cuKyj0D7YQcxU2tBd7pX0/exec';
     let allHistoryData = [];
     let groupedHistory = {}; 
-    let allLogsData = []; // เก็บข้อมูล Log
+    let allLogsData = []; 
+    let pieChartIns = null;
+    let barChartIns = null;
 
     async function getClientIP() {
         try { let r = await fetch('https://api.ipify.org?format=json'); let d = await r.json(); return d.ip; } 
@@ -463,23 +481,6 @@
         if(resetDate) setCurrentDateTime('evalDate');
     }
 
-    function fetchPatient() {
-        let hnEl = document.getElementById('searchHN');
-        if(hnEl.value) { hnEl.value = hnEl.value.replace(/\D/g, '').padStart(7, '0'); }
-        const hn = hnEl.value;
-        if(!hn) return alert('กรุณาระบุ HN');
-        
-        showLoading('กำลังดึงข้อมูล...');
-        fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'fetch_hn', hn: hn}) })
-        .then(r => r.json()).then(res => {
-            hideLoading();
-            if(res.status === 'found') {
-                populateForm(res.data[0]);
-                writeLog('Fetch Patient', hn);
-            } else { alert('ไม่พบประวัติ HN นี้ในระบบ'); clearForm(); }
-        });
-    }
-
     function populateForm(latest) {
         clearForm(false);
         document.getElementById('recordId').value = latest.record_id;
@@ -525,14 +526,10 @@
         let hnEl = document.getElementById('hn');
         if(hnEl.value) hnEl.value = hnEl.value.replace(/\D/g, '').padStart(7, '0');
         if(!hnEl.value) return alert('กรุณาระบุ HN ให้ถูกต้อง');
-        
-        const reqFields = [
-            { id: 'pName', name: 'ชื่อ-สกุล' },
-            { id: 'evalDate', name: 'วันที่ประเมิน' }
-        ];
-        for(let field of reqFields) {
-            if(!document.getElementById(field.id).value) return alert(`กรุณาระบุ: ${field.name}`);
-        }
+
+        // Form Validation (ตรวจสอบความครบถ้วน)
+        const reqFields = [{ id: 'pName', name: 'ชื่อ-สกุล' }, { id: 'evalDate', name: 'วันที่ประเมิน' }];
+        for(let field of reqFields) { if(!document.getElementById(field.id).value) return alert(`กรุณาระบุ: ${field.name}`); }
 
         let isLabActive = document.getElementById('toggleLab').checked;
         if(!isLabActive) {
@@ -543,17 +540,12 @@
         }
 
         const requiredRadios = [
-            { name: 'q3', label: 'ข้อ 3 รูปร่างผู้ป่วย' },
-            { name: 'q4', label: 'ข้อ 4 น้ำหนักเปลี่ยน' },
-            { name: 'q5_1', label: 'ข้อ 5.1 ลักษณะอาหาร' },
-            { name: 'q5_2', label: 'ข้อ 5.2 ปริมาณที่กิน' },
+            { name: 'q3', label: 'ข้อ 3 รูปร่างผู้ป่วย' }, { name: 'q4', label: 'ข้อ 4 น้ำหนักเปลี่ยน' },
+            { name: 'q5_1', label: 'ข้อ 5.1 ลักษณะอาหาร' }, { name: 'q5_2', label: 'ข้อ 5.2 ปริมาณที่กิน' },
             { name: 'q7', label: 'ข้อ 7 การเข้าถึงอาหาร' }
         ];
-        for(let r of requiredRadios) {
-            if(!document.querySelector(`input[name="${r.name}"]:checked`)) {
-                return alert(`กรุณาประเมิน: ${r.label}`);
-            }
-        }
+        for(let r of requiredRadios) { if(!document.querySelector(`input[name="${r.name}"]:checked`)) return alert(`กรุณาประเมิน: ${r.label}`); }
+
         const fd = new FormData(document.getElementById('nafForm'));
         const getVal = (name) => {
             let arr = Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(e => {
@@ -580,22 +572,23 @@
         fetch(GAS_URL, { method:'POST', body: JSON.stringify(payload) })
         .then(r => r.json()).then(res => { 
             hideLoading(); 
+            if(res.status === 'error') { alert(res.message); return; } // จัดกรณีติด LockService
             writeLog(mode === 'edit' ? 'Update Form' : 'Create Form', fd.get('hn'));
             alert('บันทึกสำเร็จ!'); 
             clearForm(); 
             loadAllHistory(); 
+        }).catch(err => {
+            hideLoading(); alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
         });
     }
 
-    // ================= ระบบค้นหาและโหลดประวัติ =================
-function loadAllHistory() {
+    // ================= ระบบค้นหา โหลดประวัติ และ Export =================
+    function loadAllHistory() {
         fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'fetch_all'}) })
         .then(r => r.json()).then(res => {
             if(res.status === 'success') {
                 allHistoryData = res.data;
                 renderTable(allHistoryData);
-                
-                // ให้วาด/อัปเดต Dashboard อัตโนมัติเมื่อได้ข้อมูลชุดใหม่
                 renderDashboard(); 
                 
                 groupedHistory = {};
@@ -605,6 +598,63 @@ function loadAllHistory() {
                 });
             }
         });
+    }
+
+    function renderTable(data) {
+        let tbody = '';
+        let cA = 0, cB = 0, cC = 0;
+        
+        if(data.length === 0) tbody = '<tr><td colspan="7" class="text-center text-muted">ไม่มีข้อมูล</td></tr>';
+        else {
+            data.forEach(r => {
+                if(r.result === 'A') cA++;
+                else if(r.result === 'B') cB++;
+                else if(r.result === 'C') cC++;
+
+                let badgeClass = r.result === 'C' ? 'bg-danger' : (r.result === 'B' ? 'bg-warning' : 'bg-success');
+                let eDate = r.evalDate.replace('T', ' ');
+                tbody += `<tr><td>${r.hn}</td><td>${r.name}</td><td>${eDate}</td><td>${r.assessor}</td>
+                    <td><strong>${r.total}</strong></td><td><span class="badge ${badgeClass}">NAF ${r.result}</span></td>
+                    <td><button class="btn btn-sm btn-info text-white" onclick="printFromHistory('${r.record_id}')">🖨️ พิมพ์</button></td></tr>`;
+            });
+        }
+        document.getElementById('historyTableBody').innerHTML = tbody;
+        
+        document.getElementById('summaryTotal').innerText = data.length;
+        document.getElementById('summaryA').innerText = cA;
+        document.getElementById('summaryB').innerText = cB;
+        document.getElementById('summaryC').innerText = cC;
+    }
+
+    function filterTable() {
+        let filterHN = document.getElementById('filterHN').value.toLowerCase();
+        let filterName = document.getElementById('filterName').value.toLowerCase();
+        let filteredData = allHistoryData.filter(r => r.hn.toLowerCase().includes(filterHN) && r.name.toLowerCase().includes(filterName));
+        renderTable(filteredData);
+    }
+    
+    function exportToCSV() {
+        let filterHN = document.getElementById('filterHN').value.toLowerCase();
+        let filterName = document.getElementById('filterName').value.toLowerCase();
+        let filteredData = allHistoryData.filter(r => r.hn.toLowerCase().includes(filterHN) && r.name.toLowerCase().includes(filterName));
+        
+        if (filteredData.length === 0) return alert('ไม่มีข้อมูลสำหรับดาวน์โหลด');
+
+        let csvContent = "\uFEFFHN,ชื่อ-สกุล,วันที่รับ,เพศ,อายุ,การวินิจฉัย,น้ำหนัก,ส่วนสูง,คะแนนรวม,ผลประเมิน,ผู้ประเมิน,วันที่ประเมิน\n";
+        filteredData.forEach(r => {
+            let row = [r.hn, r.name, r.admitDate, r.gender, r.age, r.diagnosis, r.weight, r.height, r.total, r.result, r.assessor, r.evalDate]
+                .map(v => `"${(v || '').toString().replace(/"/g, '""')}"`).join(",");
+            csvContent += row + "\n";
+        });
+        
+        let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        let url = URL.createObjectURL(blob);
+        let link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "naf_report.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function openSearchModal() {
@@ -643,67 +693,64 @@ function loadAllHistory() {
         if(record) { populateForm(record); writeLog('Load Record from Modal', record.hn); }
     }
 
-function renderTable(data) {
-        let tbody = '';
-        let cA = 0, cB = 0, cC = 0;
-        
-        if(data.length === 0) tbody = '<tr><td colspan="7" class="text-center text-muted">ไม่มีข้อมูล</td></tr>';
-        else {
-            data.forEach(r => {
-                if(r.result === 'A') cA++;
-                else if(r.result === 'B') cB++;
-                else if(r.result === 'C') cC++;
+    // ================= ระบบ Dashboard (Chart.js) =================
+    function renderDashboard() {
+        if (!allHistoryData || allHistoryData.length === 0) return;
 
-                let badgeClass = r.result === 'C' ? 'bg-danger' : (r.result === 'B' ? 'bg-warning' : 'bg-success');
-                let eDate = r.evalDate.replace('T', ' ');
-                tbody += `<tr><td>${r.hn}</td><td>${r.name}</td><td>${eDate}</td><td>${r.assessor}</td>
-                    <td><strong>${r.total}</strong></td><td><span class="badge ${badgeClass}">NAF ${r.result}</span></td>
-                    <td><button class="btn btn-sm btn-info text-white" onclick="printFromHistory('${r.record_id}')">🖨️ พิมพ์</button></td></tr>`;
-            });
-        }
-        document.getElementById('historyTableBody').innerHTML = tbody;
-        
-        // อัปเดตรายการสรุปมัดรวม
-        document.getElementById('summaryTotal').innerText = data.length;
-        document.getElementById('summaryA').innerText = cA;
-        document.getElementById('summaryB').innerText = cB;
-        document.getElementById('summaryC').innerText = cC;
-    }
+        let countA = 0, countB = 0, countC = 0;
+        let monthCounts = {};
 
-    // ฟังก์ชันดาวน์โหลดรายงาน
-    function exportToCSV() {
-        // ใช้ข้อมูลชุดที่ผ่านการกรอง (ถ้ามีการพิมพ์ค้นหา) หรือข้อมูลทั้งหมด
-        let filterHN = document.getElementById('filterHN').value.toLowerCase();
-        let filterName = document.getElementById('filterName').value.toLowerCase();
-        let filteredData = allHistoryData.filter(r => r.hn.toLowerCase().includes(filterHN) && r.name.toLowerCase().includes(filterName));
-        
-        if (filteredData.length === 0) return alert('ไม่มีข้อมูลสำหรับดาวน์โหลด');
+        allHistoryData.forEach(r => {
+            if (r.result === 'A') countA++;
+            else if (r.result === 'B') countB++;
+            else if (r.result === 'C') countC++;
 
-        let csvContent = "\uFEFFHN,ชื่อ-สกุล,วันที่รับ,เพศ,อายุ,การวินิจฉัย,น้ำหนัก,ส่วนสูง,คะแนนรวม,ผลประเมิน,ผู้ประเมิน,วันที่ประเมิน\n";
-        filteredData.forEach(r => {
-            let row = [r.hn, r.name, r.admitDate, r.gender, r.age, r.diagnosis, r.weight, r.height, r.total, r.result, r.assessor, r.evalDate]
-                .map(v => `"${(v || '').toString().replace(/"/g, '""')}"`).join(",");
-            csvContent += row + "\n";
+            if (r.evalDate) {
+                let monthYear = r.evalDate.substring(0, 7); 
+                monthCounts[monthYear] = (monthCounts[monthYear] || 0) + 1;
+            }
         });
+
+        const ctxPie = document.getElementById('nafPieChart');
+        if (pieChartIns) pieChartIns.destroy();
+        pieChartIns = new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['NAF A (ปกติ)', 'NAF B (ปานกลาง)', 'NAF C (รุนแรง)'],
+                datasets: [{
+                    data: [countA, countB, countC],
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545'], 
+                    borderWidth: 1
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+
+        const sortedMonths = Object.keys(monthCounts).sort();
+        const monthData = sortedMonths.map(m => monthCounts[m]);
         
-        let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        let url = URL.createObjectURL(blob);
-        let link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", "naf_report.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const ctxBar = document.getElementById('nafBarChart');
+        if (barChartIns) barChartIns.destroy();
+        barChartIns = new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: sortedMonths,
+                datasets: [{
+                    label: 'จำนวนผู้ได้รับการประเมิน (เคส)',
+                    data: monthData,
+                    backgroundColor: '#0d6efd',
+                    borderRadius: 4
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } 
+            }
+        });
     }
 
-    function filterTable() {
-        let filterHN = document.getElementById('filterHN').value.toLowerCase();
-        let filterName = document.getElementById('filterName').value.toLowerCase();
-        let filteredData = allHistoryData.filter(r => r.hn.toLowerCase().includes(filterHN) && r.name.toLowerCase().includes(filterName));
-        renderTable(filteredData);
-    }
-
-    // ================= ระบบ Admin จัดการ User =================
+    // ================= ระบบ Admin และ Logs =================
     function loadUsers() {
         document.getElementById('usersTableBody').innerHTML = '<tr><td colspan="5" class="text-center">กำลังโหลด...</td></tr>';
         fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'get_users'}) })
@@ -711,7 +758,7 @@ function renderTable(data) {
             let tr = '';
             res.data.forEach(u => {
                 tr += `<tr><td>${u.username}</td><td>${u.fullname||'-'}</td><td>${u.role}</td><td>${u.location}</td>
-                <td><button class="btn btn-sm btn-warning" onclick="editUser('${u.username}', '${u.password}', '${u.role}', '${u.location}', '${u.fullname||''}')">แก้ไข</button>
+                <td><button class="btn btn-sm btn-warning" onclick="editUser('${u.username}', '********', '${u.role}', '${u.location}', '${u.fullname||''}')">แก้ไข</button>
                 <button class="btn btn-sm btn-danger" onclick="delUser('${u.username}')">ลบ</button></td></tr>`;
             });
             document.getElementById('usersTableBody').innerHTML = tr;
@@ -728,7 +775,8 @@ function renderTable(data) {
     function editUser(u, p, r, l, f) {
         document.getElementById('u_old_username').value = u;
         document.getElementById('u_username').value = u;
-        document.getElementById('u_password').value = p;
+        document.getElementById('u_password').value = '';
+        document.getElementById('u_password').placeholder = 'เว้นว่างถ้าไม่เปลี่ยนรหัส';
         document.getElementById('u_role').value = r;
         document.getElementById('u_location').value = l;
         document.getElementById('u_fullname').value = f;
@@ -761,13 +809,10 @@ function renderTable(data) {
         if(!confirm('ลบผู้ใช้งาน: ' + username + ' ใช่หรือไม่?')) return;
         fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'delete_user', username: username}) })
         .then(r => r.json()).then(res => { 
-            alert('ลบสำเร็จ'); 
-            writeLog('Delete User', username);
-            loadUsers(); 
+            alert('ลบสำเร็จ'); writeLog('Delete User', username); loadUsers(); 
         });
     }
 
-    // ================= ระบบ Logs (Admin Only) =================
     function loadLogs() {
         document.getElementById('logTableBody').innerHTML = '<tr><td colspan="6" class="text-center">กำลังโหลด Logs...</td></tr>';
         fetch(GAS_URL, { method:'POST', body: JSON.stringify({action: 'get_logs'}) })
@@ -775,9 +820,7 @@ function renderTable(data) {
             if(res.status === 'success') {
                 allLogsData = res.data;
                 renderLogTable(allLogsData);
-            } else {
-                document.getElementById('logTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger">${res.message}</td></tr>`;
-            }
+            } else { document.getElementById('logTableBody').innerHTML = `<tr><td colspan="6" class="text-center text-danger">${res.message}</td></tr>`; }
         });
     }
 
@@ -786,8 +829,7 @@ function renderTable(data) {
         if(data.length === 0) tbody = '<tr><td colspan="6" class="text-center text-muted">ไม่มีประวัติ Log</td></tr>';
         else {
             data.forEach(L => {
-                let dStr = new Date(L.datetime).toLocaleString('th-TH'); // ปรับฟอร์แมตให้อ่านง่าย
-                // ตัด UA ให้สั้นลงเพื่อความสวยงามในตาราง
+                let dStr = new Date(L.datetime).toLocaleString('th-TH'); 
                 let shortUA = L.ua ? (L.ua.length > 40 ? L.ua.substring(0,40)+'...' : L.ua) : '-';
                 tbody += `<tr><td>${dStr}</td><td>${L.username}</td><td><span class="text-primary">${L.action}</span></td>
                           <td>${L.target}</td><td>${L.ip}</td><td title="${L.ua}">${shortUA}</td></tr>`;
@@ -798,35 +840,27 @@ function renderTable(data) {
 
     function filterLogTable() {
         let kw = document.getElementById('filterLogInput').value.toLowerCase();
-        let filtered = allLogsData.filter(L => 
-            L.username.toLowerCase().includes(kw) || L.action.toLowerCase().includes(kw) || L.target.toString().includes(kw)
-        );
+        let filtered = allLogsData.filter(L => L.username.toLowerCase().includes(kw) || L.action.toLowerCase().includes(kw) || L.target.toString().includes(kw));
         renderLogTable(filtered);
     }
 
-    // ================= ฟังก์ชันการพิมพ์ =================
-// ================= ฟังก์ชันการพิมพ์ =================
+    // ================= ฟังก์ชันการพิมพ์ (โชว์คะแนน) =================
     function renderPrint(r) {
-        // ฟังก์ชันใหม่สำหรับดึงข้อความพร้อมคะแนน
         const getPrintTextWithScore = (name, valStr) => {
             if (r) {
-                // กรณีพิมพ์จากประวัติ (ดึงคะแนนโดยอ้างอิงจาก data-l กลับไปหา value)
                 if (!valStr || valStr === '-') return '-';
                 let parts = valStr.split(', ');
                 let res = parts.map(part => {
                     let score = 0;
-                    // จัดการกรณีตัวเลือก "อื่นๆ"
                     if (part.startsWith('อื่นๆ(6)')) return `${part.replace('อื่นๆ(6):', 'อื่นๆ:')} (6 คะแนน)`;
                     if (part.startsWith('อื่นๆ(3)')) return `${part.replace('อื่นๆ(3):', 'อื่นๆ:')} (3 คะแนน)`;
                     
-                    // ค้นหา element ที่ตรงกันเพื่อดึงคะแนน
                     let el = document.querySelector(`input[name="${name}"][data-l="${part}"]`);
                     if (el) score = el.value;
                     return `${part} (${score} คะแนน)`;
                 });
                 return res.join(', ');
             } else {
-                // กรณีพรีวิวก่อนบันทึก (ดึงคะแนนจาก attribute value ของ element ที่ถูก checked ได้เลย)
                 let res = Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(e => {
                     let text = e.getAttribute('data-l');
                     let score = e.value;
@@ -853,7 +887,6 @@ function renderTable(data) {
         document.getElementById('pr_w').innerText = w || '-';
         document.getElementById('pr_bmi').innerText = (h > 0 && w > 0) ? (w / Math.pow(h/100, 2)).toFixed(1) : '-';
         
-        // ใช้ getPrintTextWithScore เพื่อให้แสดงข้อความ + (คะแนน)
         document.getElementById('pr_q21').innerText = getPrintTextWithScore('q2_1', r ? r.q2_1 : null);
         document.getElementById('pr_q22').innerText = getPrintTextWithScore('q2_2', r ? r.q2_2 : null);
         document.getElementById('pr_lab').innerText = getPrintTextWithScore('lab', r ? r.lab : null);
@@ -890,78 +923,7 @@ function renderTable(data) {
 
     function printFromHistory(recordId) { const r = allHistoryData.find(item => item.record_id === recordId); if(r) renderPrint(r); }
     function previewPrint() { renderPrint(null); }
-// ================= ระบบ Dashboard (Chart.js) =================
-    let pieChartIns = null;
-    let barChartIns = null;
 
-    function renderDashboard() {
-        if (!allHistoryData || allHistoryData.length === 0) return;
-
-        // 1. เตรียมข้อมูลสำหรับ กราฟโดนัท (สัดส่วน NAF A, B, C)
-        let countA = 0, countB = 0, countC = 0;
-        
-        // 2. เตรียมข้อมูลสำหรับ กราฟแท่ง (จำนวนเคสรายเดือน)
-        let monthCounts = {};
-
-        allHistoryData.forEach(r => {
-            // นับยอด A, B, C
-            if (r.result === 'A') countA++;
-            else if (r.result === 'B') countB++;
-            else if (r.result === 'C') countC++;
-
-            // นับยอดรายเดือน (ตัดเอาเฉพาะ YYYY-MM จาก evalDate)
-            if (r.evalDate) {
-                // ข้อมูลวันที่มักอยู่ในรูป "2026-08-11T08:15"
-                let monthYear = r.evalDate.substring(0, 7); 
-                monthCounts[monthYear] = (monthCounts[monthYear] || 0) + 1;
-            }
-        });
-
-        // --- วาดกราฟโดนัท (Pie/Doughnut Chart) ---
-        const ctxPie = document.getElementById('nafPieChart');
-        if (pieChartIns) pieChartIns.destroy(); // ลบกราฟเก่าก่อนวาดใหม่
-        pieChartIns = new Chart(ctxPie, {
-            type: 'doughnut',
-            data: {
-                labels: ['NAF A (ปกติ)', 'NAF B (ปานกลาง)', 'NAF C (รุนแรง)'],
-                datasets: [{
-                    data: [countA, countB, countC],
-                    backgroundColor: ['#198754', '#ffc107', '#dc3545'], // เขียว, เหลือง, แดง
-                    borderWidth: 1
-                }]
-            },
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-
-        // --- วาดกราฟแท่ง (Bar Chart) ---
-        // เรียงลำดับเดือนจากอดีตไปปัจจุบัน
-        const sortedMonths = Object.keys(monthCounts).sort();
-        const monthData = sortedMonths.map(m => monthCounts[m]);
-        
-        const ctxBar = document.getElementById('nafBarChart');
-        if (barChartIns) barChartIns.destroy();
-        barChartIns = new Chart(ctxBar, {
-            type: 'bar',
-            data: {
-                labels: sortedMonths,
-                datasets: [{
-                    label: 'จำนวนผู้ได้รับการประเมิน (เคส)',
-                    data: monthData,
-                    backgroundColor: '#0d6efd', // สีน้ำเงิน
-                    borderRadius: 4
-                }]
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false,
-                scales: { 
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } } 
-                } 
-            }
-        });
-    }
-
-    
 </script>
 </body>
 </html>
