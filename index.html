@@ -97,13 +97,15 @@
 
             <form id="nafForm">
                 <div class="box row g-2">
-                    <div class="col-md-3"><label>HN (7 หลัก)</label><input type="text" name="hn" id="hn" class="form-control hn-format" maxlength="7" required></div>
+                    <div class="col-md-2"><label>HN (7 หลัก)</label><input type="text" name="hn" id="hn" class="form-control hn-format" maxlength="7" required></div>
+                    <div class="col-md-2"><label class="fw-bold text-primary">เตียง</label><input type="text" name="bed" id="bed" class="form-control fw-bold" placeholder="เช่น F14, M11"></div>
                     <div class="col-md-4"><label>ชื่อ-สกุล</label><input type="text" name="name" id="pName" class="form-control" required></div>
                     <div class="col-md-2"><label>เพศ</label><select name="gender" class="form-select"><option value="ชาย">ชาย</option><option value="หญิง">หญิง</option></select></div>
                     <div class="col-md-2"><label>อายุ (ปี)</label><input type="number" name="age" class="form-control"></div>
                     <div class="col-md-3"><label>วันที่รับ (และเวลา)</label><input type="datetime-local" name="admitDate" class="form-control"></div>
-                    <div class="col-md-4"><label>การวินิจฉัย</label><input type="text" name="diagnosis" class="form-control"></div>
-                    <div class="col-md-4"><label>แหล่งข้อมูล</label><select name="infoSource" class="form-select"><option value="ผู้ป่วย">ผู้ป่วย</option><option value="ญาติ">ญาติ</option><option value="แฟ้มประวัติ">แฟ้มประวัติ</option></select></div>
+                    <div class="col-md-3"><label>วอร์ด / หอผู้ป่วย</label><input type="text" name="ward" id="ward" class="form-control" placeholder="เช่น ตึกสามัญ"></div>
+                    <div class="col-md-3"><label>การวินิจฉัย</label><input type="text" name="diagnosis" class="form-control"></div>
+                    <div class="col-md-3"><label>แหล่งข้อมูล</label><select name="infoSource" class="form-select"><option value="ผู้ป่วย">ผู้ป่วย</option><option value="ญาติ">ญาติ</option><option value="แฟ้มประวัติ">แฟ้มประวัติ</option></select></div>
                 </div>
 
                 <div class="box">
@@ -180,8 +182,9 @@
             </div>
             
             <div class="row mb-3">
-                <div class="col-md-4 mb-2 mb-md-0"><input type="text" id="filterHN" class="form-control hn-format" placeholder="ค้นหาด้วย HN..." maxlength="7" oninput="filterTable()"></div>
-                <div class="col-md-4"><input type="text" id="filterName" class="form-control" placeholder="ค้นหาด้วย ชื่อ-สกุล..." oninput="filterTable()"></div>
+                <div class="col-md-3 mb-2 mb-md-0"><input type="text" id="filterHN" class="form-control hn-format" placeholder="ค้นหาด้วย HN..." maxlength="7" oninput="filterTable()"></div>
+                <div class="col-md-2 mb-2 mb-md-0"><input type="text" id="filterBed" class="form-control" placeholder="ค้นหาด้วย เตียง..." oninput="filterTable()"></div>
+                <div class="col-md-4 mb-2 mb-md-0"><input type="text" id="filterName" class="form-control" placeholder="ค้นหาด้วย ชื่อ-สกุล..." oninput="filterTable()"></div>
             </div>
 
             <!-- กล่องรายการสรุปมัดรวม -->
@@ -193,9 +196,9 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table table-striped table-bordered" id="historyTable" style="min-width: 700px;">
-                    <thead class="table-dark"><tr><th>HN</th><th>ชื่อ-สกุล</th><th>วันที่ประเมิน</th><th>ผู้ประเมิน</th><th>คะแนนรวม</th><th>ผลประเมิน</th><th>การจัดการ</th></tr></thead>
-                    <tbody id="historyTableBody"><tr><td colspan="7" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr></tbody>
+                <table class="table table-striped table-bordered align-middle" id="historyTable" style="min-width: 750px;">
+                    <thead class="table-dark"><tr><th width="10%">HN</th><th width="10%">เตียง</th><th>ชื่อ-สกุล</th><th>วันที่ประเมิน</th><th>ผู้ประเมิน</th><th width="10%">คะแนนรวม</th><th width="12%">ผลประเมิน</th><th width="10%">การจัดการ</th></tr></thead>
+                    <tbody id="historyTableBody"><tr><td colspan="8" class="text-center text-muted">กำลังโหลดข้อมูล...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -316,7 +319,11 @@
 <div id="printArea" style="visibility:hidden; display:none; background:white;">
     <h2 style="text-align:center;">Nutrition Alert Form (NAF) - สรุปการประเมิน</h2>
     <div style="display:flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px;">
-        <div><b>HN:</b> <span id="pr_hn"></span><br><b>ชื่อ-สกุล:</b> <span id="pr_name"></span><br><b>อายุ:</b> <span id="pr_age"></span> ปี | <b>เพศ:</b> <span id="pr_gender"></span></div>
+        <div>
+            <b>HN:</b> <span id="pr_hn"></span> &nbsp;&nbsp;|&nbsp;&nbsp; <b>เตียง:</b> <span id="pr_bed" style="font-weight:bold; color:#0d6efd;"></span> &nbsp;&nbsp;|&nbsp;&nbsp; <b>วอร์ด:</b> <span id="pr_ward"></span><br>
+            <b>ชื่อ-สกุล:</b> <span id="pr_name"></span><br>
+            <b>อายุ:</b> <span id="pr_age"></span> ปี &nbsp;|&nbsp; <b>เพศ:</b> <span id="pr_gender"></span>
+        </div>
         <div style="text-align: right;"><b>วันที่รับผู้ป่วย:</b> <span id="pr_admit"></span></div>
     </div>
     <table class="print-table">
@@ -342,7 +349,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbz8CULRKEr6ISomLC_JdxzwA5MJVfpy7iC2CKEJsE_lRnPiZ1o-fh8H-6JFwVhzU2aC/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyb6KRSTMaKRZ-RpuPWlRaClFC3mAGyaJ7ptTVmtRFS01p8VvAjc4GWk1mkvB0W_rVX/exec';
     let allHistoryData = [];
     let groupedHistory = {}; 
     let allLogsData = []; 
@@ -409,6 +416,33 @@
     }
 
     // ================= ฟังก์ชันช่วยเหลือทั่วไป =================
+    function formatForDateTimeLocal(val) {
+        if (!val) return '';
+        val = val.toString().trim();
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(val)) {
+            return val.slice(0, 16);
+        }
+        if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}/.test(val)) {
+            return val.replace(' ', 'T').slice(0, 16);
+        }
+        let m = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[,\s]+(\d{1,2}):(\d{1,2})/);
+        if (m) {
+            let day = m[1].padStart(2, '0');
+            let month = m[2].padStart(2, '0');
+            let year = parseInt(m[3]);
+            if (year > 2500) year -= 543;
+            let hour = m[4].padStart(2, '0');
+            let min = m[5].padStart(2, '0');
+            return `${year}-${month}-${day}T${hour}:${min}`;
+        }
+        let d = new Date(val);
+        if (!isNaN(d.getTime())) {
+            let tzOffset = d.getTimezoneOffset() * 60000;
+            return (new Date(d.getTime() - tzOffset)).toISOString().slice(0, 16);
+        }
+        return '';
+    }
+
     function setCurrentDateTime(elementId) {
         let tzOffset = (new Date()).getTimezoneOffset() * 60000;
         document.getElementById(elementId).value = (new Date(Date.now() - tzOffset)).toISOString().slice(0, 16);
@@ -418,8 +452,43 @@
 
     // ================= ฟอร์ม NAF =================
     document.querySelectorAll('.hn-format').forEach(el => {
-        el.addEventListener('blur', function() { if(this.value) { this.value = this.value.replace(/\D/g, '').padStart(7, '0'); } });
+        el.addEventListener('blur', function() { 
+            if(this.value) { 
+                this.value = this.value.replace(/\D/g, '').padStart(7, '0'); 
+                if (this.id === 'hn') checkAndAutoLoadHn(this.value);
+            } 
+        });
+        el.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.blur();
+            }
+        });
     });
+
+    function checkAndAutoLoadHn(hn) {
+        if (!hn) return;
+        let currentRecordId = document.getElementById('recordId').value;
+        if (currentRecordId) return; // หากกำลังแก้ไขประวัติอยู่แล้ว ไม่โหลดทับ
+
+        if (groupedHistory && groupedHistory[hn] && groupedHistory[hn].records.length > 0) {
+            let latest = groupedHistory[hn].records[0];
+            populateForm(latest);
+            return;
+        }
+
+        // ค้นหาจาก Google Apps Script หากยังไม่มีในแคช
+        showLoading('กำลังค้นหาประวัติผู้ป่วย...');
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'fetch_hn', hn: hn }) })
+        .then(r => r.json()).then(res => {
+            hideLoading();
+            if (res.status === 'found' && res.data && res.data.length > 0) {
+                populateForm(res.data[0]);
+            }
+        }).catch(e => {
+            hideLoading();
+        });
+    }
 
     document.getElementById('height').addEventListener('input', calcBMI);
     document.getElementById('weight').addEventListener('input', calcBMI);
@@ -482,22 +551,26 @@
     }
 
     function populateForm(latest) {
+        if (!latest) return;
         clearForm(false);
-        document.getElementById('recordId').value = latest.record_id;
-        document.getElementById('hn').value = latest.hn;
-        document.getElementById('pName').value = latest.name;
-        document.querySelector('select[name="gender"]').value = latest.gender;
-        document.querySelector('input[name="age"]').value = latest.age;
-        if(latest.admitDate && latest.admitDate.includes('T')) document.querySelector('input[name="admitDate"]').value = latest.admitDate.slice(0,16);
-        else document.querySelector('input[name="admitDate"]').value = latest.admitDate;
+        document.getElementById('recordId').value = latest.record_id || '';
+        document.getElementById('hn').value = (latest.hn || '').toString().replace(/^'/, '');
+        if(document.getElementById('bed')) document.getElementById('bed').value = latest.bed || '';
+        if(document.getElementById('ward')) document.getElementById('ward').value = latest.ward || '';
+        document.getElementById('pName').value = latest.name || '';
+        if(document.querySelector('select[name="gender"]')) document.querySelector('select[name="gender"]').value = latest.gender || 'ชาย';
+        if(document.querySelector('input[name="age"]')) document.querySelector('input[name="age"]').value = latest.age !== undefined ? latest.age : '';
         
-        if(latest.evalDate && latest.evalDate.includes('T')) document.getElementById('evalDate').value = latest.evalDate.slice(0,16);
-        else document.getElementById('evalDate').value = latest.evalDate;
+        let admitFormatted = formatForDateTimeLocal(latest.admitDate);
+        if(document.querySelector('input[name="admitDate"]')) document.querySelector('input[name="admitDate"]').value = admitFormatted;
+        
+        let evalFormatted = formatForDateTimeLocal(latest.evalDate);
+        if(document.getElementById('evalDate') && evalFormatted) document.getElementById('evalDate').value = evalFormatted;
 
-        document.querySelector('input[name="diagnosis"]').value = latest.diagnosis;
-        document.querySelector('select[name="infoSource"]').value = latest.infoSource;
-        document.getElementById('height').value = latest.height;
-        document.getElementById('weight').value = latest.weight;
+        if(document.querySelector('input[name="diagnosis"]')) document.querySelector('input[name="diagnosis"]').value = latest.diagnosis || '';
+        if(document.querySelector('select[name="infoSource"]')) document.querySelector('select[name="infoSource"]').value = latest.infoSource || 'ผู้ป่วย';
+        document.getElementById('height').value = latest.height || '';
+        document.getElementById('weight').value = latest.weight || '';
         document.getElementById('details').value = latest.details || '';
         calcBMI();
 
@@ -506,20 +579,40 @@
             document.querySelectorAll(`input[name="${name}"]`).forEach(el => { if(valStr.includes(el.getAttribute('data-l'))) el.checked = true; });
         };
         
-        setChecks('q2_1', latest.q2_1); setChecks('q2_2', latest.q2_2);
+        setChecks('q2_1', latest.q2_1); 
+        setChecks('q2_2', latest.q2_2);
         if(latest.lab && latest.lab !== '-') { document.getElementById('toggleLab').checked = true; toggleLabDiv(); setChecks('lab', latest.lab); }
-        setChecks('q3', latest.q3); setChecks('q4', latest.q4); setChecks('q5_1', latest.q5_1); setChecks('q5_2', latest.q5_2);
-        setChecks('q6_1', latest.q6_1); setChecks('q6_2', latest.q6_2); setChecks('q6_3', latest.q6_3); setChecks('q7', latest.q7);
+        setChecks('q3', latest.q3); 
+        setChecks('q4', latest.q4); 
+        setChecks('q5_1', latest.q5_1); 
+        setChecks('q5_2', latest.q5_2);
+        setChecks('q6_1', latest.q6_1); 
+        setChecks('q6_2', latest.q6_2); 
+        setChecks('q6_3', latest.q6_3); 
+        setChecks('q7', latest.q7);
 
         if(latest.q8 && latest.q8 !== '-') {
-            document.querySelectorAll('input[name="q8"]').forEach(el => { let l = el.getAttribute('data-l'); if(l && latest.q8.includes(l)) el.checked = true; });
-            let m6 = latest.q8.match(/อื่นๆ\(6\):\s*([^,]+)/); if(m6) { document.getElementById('chkOther6').checked = true; document.getElementById('txtOther6').value = m6[1]; }
-            let m3 = latest.q8.match(/อื่นๆ\(3\):\s*([^,]+)/); if(m3) { document.getElementById('chkOther3').checked = true; document.getElementById('txtOther3').value = m3[1]; }
+            document.querySelectorAll('input[name="q8"]').forEach(el => { 
+                let l = el.getAttribute('data-l'); 
+                if(l && latest.q8.includes(l)) el.checked = true; 
+            });
+            let m6 = latest.q8.match(/อื่นๆ\(6\):\s*([^,]+)/) || latest.q8.match(/อื่นๆ:\s*([^,(]+)/); 
+            if(m6 && document.getElementById('chkOther6')) { 
+                document.getElementById('chkOther6').checked = true; 
+                document.getElementById('txtOther6').value = m6[1].trim(); 
+            }
+            let m3 = latest.q8.match(/อื่นๆ\(3\):\s*([^,]+)/); 
+            if(m3 && document.getElementById('chkOther3')) { 
+                document.getElementById('chkOther3').checked = true; 
+                document.getElementById('txtOther3').value = m3[1].trim(); 
+            }
         }
 
         recalcScore();
-        document.getElementById('editBanner').classList.remove('d-none');
-        document.getElementById('btnEditSave').style.display = 'inline-block';
+        if (latest.record_id) {
+            document.getElementById('editBanner').classList.remove('d-none');
+            document.getElementById('btnEditSave').style.display = 'inline-block';
+        }
     }
 
     function submitData(mode) {
@@ -561,6 +654,7 @@
             data: {
                 record_id: document.getElementById('recordId').value, hn: fd.get('hn'), name: fd.get('name'), gender: fd.get('gender'),
                 age: fd.get('age'), admitDate: fd.get('admitDate'), diagnosis: fd.get('diagnosis'), infoSource: fd.get('infoSource'),
+                bed: fd.get('bed') || '', ward: fd.get('ward') || '',
                 height: fd.get('height'), weight: fd.get('weight'), q2_1: getVal('q2_1'), q2_2: getVal('q2_2'), lab: getVal('lab'),
                 q3: getVal('q3'), q4: getVal('q4'), q5_1: getVal('q5_1'), q5_2: getVal('q5_2'), q6_1: getVal('q6_1'), q6_2: getVal('q6_2'), q6_3: getVal('q6_3'),
                 q7: getVal('q7'), q8: getVal('q8'), totalScore: fd.get('totalScore'), resultGroup: fd.get('resultGroup'),
@@ -593,7 +687,9 @@
                 
                 groupedHistory = {};
                 allHistoryData.forEach(r => {
-                    if(!groupedHistory[r.hn]) groupedHistory[r.hn] = { name: r.name, records: [] };
+                    if(!groupedHistory[r.hn]) groupedHistory[r.hn] = { name: r.name, bed: r.bed || '', ward: r.ward || '', records: [] };
+                    if(r.bed && !groupedHistory[r.hn].bed) groupedHistory[r.hn].bed = r.bed;
+                    if(r.ward && !groupedHistory[r.hn].ward) groupedHistory[r.hn].ward = r.ward;
                     groupedHistory[r.hn].records.push(r);
                 });
             }
@@ -604,7 +700,7 @@
         let tbody = '';
         let cA = 0, cB = 0, cC = 0;
         
-        if(data.length === 0) tbody = '<tr><td colspan="7" class="text-center text-muted">ไม่มีข้อมูล</td></tr>';
+        if(data.length === 0) tbody = '<tr><td colspan="8" class="text-center text-muted">ไม่มีข้อมูล</td></tr>';
         else {
             data.forEach(r => {
                 if(r.result === 'A') cA++;
@@ -612,8 +708,9 @@
                 else if(r.result === 'C') cC++;
 
                 let badgeClass = r.result === 'C' ? 'bg-danger' : (r.result === 'B' ? 'bg-warning' : 'bg-success');
-                let eDate = r.evalDate.replace('T', ' ');
-                tbody += `<tr><td>${r.hn}</td><td>${r.name}</td><td>${eDate}</td><td>${r.assessor}</td>
+                let bedBadge = r.bed ? `<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-bold">${r.bed}</span>` : '-';
+                let eDate = (r.evalDate || '').replace('T', ' ');
+                tbody += `<tr><td>${r.hn}</td><td>${bedBadge}</td><td>${r.name}</td><td>${eDate}</td><td>${r.assessor}</td>
                     <td><strong>${r.total}</strong></td><td><span class="badge ${badgeClass}">NAF ${r.result}</span></td>
                     <td><button class="btn btn-sm btn-info text-white" onclick="printFromHistory('${r.record_id}')">🖨️ พิมพ์</button></td></tr>`;
             });
@@ -628,21 +725,33 @@
 
     function filterTable() {
         let filterHN = document.getElementById('filterHN').value.toLowerCase();
+        let filterBed = document.getElementById('filterBed') ? document.getElementById('filterBed').value.toLowerCase() : '';
         let filterName = document.getElementById('filterName').value.toLowerCase();
-        let filteredData = allHistoryData.filter(r => r.hn.toLowerCase().includes(filterHN) && r.name.toLowerCase().includes(filterName));
+        let filteredData = allHistoryData.filter(r => {
+            let matchHN = r.hn.toLowerCase().includes(filterHN);
+            let matchBed = !filterBed || (r.bed && r.bed.toString().toLowerCase().includes(filterBed));
+            let matchName = r.name.toLowerCase().includes(filterName);
+            return matchHN && matchBed && matchName;
+        });
         renderTable(filteredData);
     }
     
     function exportToCSV() {
         let filterHN = document.getElementById('filterHN').value.toLowerCase();
+        let filterBed = document.getElementById('filterBed') ? document.getElementById('filterBed').value.toLowerCase() : '';
         let filterName = document.getElementById('filterName').value.toLowerCase();
-        let filteredData = allHistoryData.filter(r => r.hn.toLowerCase().includes(filterHN) && r.name.toLowerCase().includes(filterName));
+        let filteredData = allHistoryData.filter(r => {
+            let matchHN = r.hn.toLowerCase().includes(filterHN);
+            let matchBed = !filterBed || (r.bed && r.bed.toString().toLowerCase().includes(filterBed));
+            let matchName = r.name.toLowerCase().includes(filterName);
+            return matchHN && matchBed && matchName;
+        });
         
         if (filteredData.length === 0) return alert('ไม่มีข้อมูลสำหรับดาวน์โหลด');
 
-        let csvContent = "\uFEFFHN,ชื่อ-สกุล,วันที่รับ,เพศ,อายุ,การวินิจฉัย,น้ำหนัก,ส่วนสูง,คะแนนรวม,ผลประเมิน,ผู้ประเมิน,วันที่ประเมิน\n";
+        let csvContent = "\uFEFFHN,เตียง,วอร์ด,ชื่อ-สกุล,วันที่รับ,เพศ,อายุ,การวินิจฉัย,น้ำหนัก,ส่วนสูง,คะแนนรวม,ผลประเมิน,ผู้ประเมิน,วันที่ประเมิน\n";
         filteredData.forEach(r => {
-            let row = [r.hn, r.name, r.admitDate, r.gender, r.age, r.diagnosis, r.weight, r.height, r.total, r.result, r.assessor, r.evalDate]
+            let row = [r.hn, r.bed || '', r.ward || '', r.name, r.admitDate, r.gender, r.age, r.diagnosis, r.weight, r.height, r.total, r.result, r.assessor, r.evalDate]
                 .map(v => `"${(v || '').toString().replace(/"/g, '""')}"`).join(",");
             csvContent += row + "\n";
         });
@@ -671,13 +780,17 @@
         let html = ''; let count = 0;
         for (let hn in groupedHistory) {
             let patient = groupedHistory[hn];
-            if (hn.includes(kw) || patient.name.toLowerCase().includes(kw)) {
+            let matchBed = patient.bed ? patient.bed.toLowerCase().includes(kw) : false;
+            let matchWard = patient.ward ? patient.ward.toLowerCase().includes(kw) : false;
+            if (hn.includes(kw) || patient.name.toLowerCase().includes(kw) || matchBed || matchWard) {
                 count++;
+                let bedBadge = patient.bed ? `<span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-2">เตียง ${patient.bed}</span>` : '';
+                let wardBadge = patient.ward ? `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle ms-1">${patient.ward}</span>` : '';
                 let recordLinks = patient.records.map(r => 
                     `<button class="btn btn-sm btn-outline-primary m-1" onclick="loadSpecificRecord('${r.record_id}')">📄 ${r.evalDate.replace('T',' ')} (คะแนน: ${r.total})</button>`
                 ).join('');
                 html += `<div class="list-group-item search-result-item">
-                    <h6 class="mb-1 text-primary fw-bold">HN: ${hn} - ${patient.name}</h6>
+                    <h6 class="mb-1 text-primary fw-bold">HN: ${hn} - ${patient.name} ${bedBadge} ${wardBadge}</h6>
                     <div class="mt-2 text-muted" style="font-size:0.9rem;">เลือกประวัติที่ต้องการดึง:</div>
                     <div class="d-flex flex-wrap mt-1">${recordLinks}</div>
                 </div>`;
@@ -872,20 +985,22 @@
             }
         };
 
-        document.getElementById('pr_hn').innerText = r ? r.hn : (document.getElementById('hn').value || '-');
-        document.getElementById('pr_name').innerText = r ? r.name : (document.getElementById('pName').value || '-');
-        document.getElementById('pr_age').innerText = r ? r.age : (document.querySelector('input[name="age"]').value || '-');
-        document.getElementById('pr_gender').innerText = r ? r.gender : (document.querySelector('select[name="gender"]').value || '-');
+        document.getElementById('pr_hn').innerText = r ? (r.hn || '-') : (document.getElementById('hn').value || '-');
+        document.getElementById('pr_bed').innerText = r ? (r.bed || '-') : (document.getElementById('bed').value || '-');
+        document.getElementById('pr_ward').innerText = r ? (r.ward || '-') : (document.getElementById('ward').value || '-');
+        document.getElementById('pr_name').innerText = r ? (r.name || '-') : (document.getElementById('pName').value || '-');
+        document.getElementById('pr_age').innerText = r ? (r.age !== undefined && r.age !== '' ? r.age : '-') : (document.querySelector('input[name="age"]').value || '-');
+        document.getElementById('pr_gender').innerText = r ? (r.gender || '-') : (document.querySelector('select[name="gender"]').value || '-');
         
         let aDate = r ? r.admitDate : document.querySelector('input[name="admitDate"]').value;
         document.getElementById('pr_admit').innerText = (aDate||'-').replace('T', ' เวลา ');
-        document.getElementById('pr_diag').innerText = r ? r.diagnosis : (document.querySelector('input[name="diagnosis"]').value || '-');
+        document.getElementById('pr_diag').innerText = r ? (r.diagnosis || '-') : (document.querySelector('input[name="diagnosis"]').value || '-');
         
         let h = r ? r.height : document.getElementById('height').value;
         let w = r ? r.weight : document.getElementById('weight').value;
         document.getElementById('pr_h').innerText = h || '-';
         document.getElementById('pr_w').innerText = w || '-';
-        document.getElementById('pr_bmi').innerText = (h > 0 && w > 0) ? (w / Math.pow(h/100, 2)).toFixed(1) : '-';
+        document.getElementById('pr_bmi').innerText = (h > 0 && w > 0) ? (w / Math.pow(h/100, 2)).toFixed(1) : (document.getElementById('displayBMI').value || '-');
         
         document.getElementById('pr_q21').innerText = getPrintTextWithScore('q2_1', r ? r.q2_1 : null);
         document.getElementById('pr_q22').innerText = getPrintTextWithScore('q2_2', r ? r.q2_2 : null);
@@ -902,16 +1017,17 @@
         
         document.getElementById('pr_details').innerText = r ? (r.details||'-') : (document.getElementById('details').value || '-');
         
-        let score = r ? r.total : document.getElementById('tScore').value;
+        let score = r ? (r.total !== '' && r.total !== undefined ? r.total : '-') : document.getElementById('tScore').value;
         document.getElementById('pr_score').innerText = score;
         
-        let resText = '';
-        if (score <= 5) resText = 'NAF A: ปกติ ถึง ขาดสารอาหารเล็กน้อย';
-        else if (score <= 10) resText = 'NAF B: ขาดสารอาหารปานกลาง';
-        else resText = 'NAF C: ขาดสารอาหารรุนแรง';
+        let resGroup = r ? r.result : document.getElementById('rGroup').value;
+        let resText = '-';
+        if (resGroup === 'A' || (score !== '-' && score <= 5)) resText = 'NAF A: ปกติ ถึง ขาดสารอาหารเล็กน้อย';
+        else if (resGroup === 'B' || (score !== '-' && score <= 10)) resText = 'NAF B: ขาดสารอาหารปานกลาง';
+        else if (resGroup === 'C' || (score !== '-' && score > 10)) resText = 'NAF C: ขาดสารอาหารรุนแรง';
         document.getElementById('pr_result').innerText = resText;
 
-        document.getElementById('pr_assessor').innerText = r ? r.assessor : (document.getElementById('assessor').value || '-');
+        document.getElementById('pr_assessor').innerText = r ? (r.assessor || '-') : (document.getElementById('assessor').value || '-');
         let eDate = r ? r.evalDate : document.getElementById('evalDate').value;
         document.getElementById('pr_date').innerText = (eDate||'-').replace('T', ' เวลา ');
         
